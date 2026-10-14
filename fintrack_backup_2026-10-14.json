@@ -1,0 +1,124 @@
+{
+  "transactions": [
+    {
+      "id": "tx_1791988419934",
+      "date": "2026-10-14T21:22",
+      "amount": 60,
+      "type": "lend",
+      "category": "💸 ให้ยืมเงินสด",
+      "title": "ค่าเหรียญ",
+      "person": "แม่",
+      "dueDate": "2026-10-15T16:00",
+      "settled": false,
+      "slip": null
+    },
+    {
+      "id": "tx_1791988376972",
+      "date": "2026-10-14T21:22",
+      "amount": 4265.42,
+      "type": "income",
+      "category": "💼 เงินรายเดือน / ทางบ้านให้",
+      "title": "ยกยอด",
+      "person": null,
+      "dueDate": null,
+      "settled": false,
+      "slip": null
+    },
+    {
+      "id": "tx_1791988262453",
+      "date": "2026-10-14T21:22",
+      "amount": 5000,
+      "type": "saving",
+      "category": "🏦 เงินออมฉุกเฉิน",
+      "title": "ออมรายเดือน",
+      "person": null,
+      "dueDate": null,
+      "settled": false,
+      "slip": null
+    },
+    {
+      "id": "tx_1791987951181",
+      "date": "2026-10-14T21:22",
+      "amount": 1500,
+      "type": "borrow",
+      "category": "🙌 ยืมเงินเพื่อน/ครอบครัว",
+      "title": "ค่าข้าว",
+      "person": "โจนาธาน",
+      "dueDate": "2026-11-01T10:00",
+      "settled": false,
+      "slip": null
+    },
+    {
+      "id": "tx_1791987892518",
+      "date": "2026-10-14T21:22",
+      "amount": 87,
+      "type": "lend",
+      "category": "🤝 จ่ายแทนเพื่อน (ค่าข้าว/ของ)",
+      "title": "ขนมปัง Yamazaki",
+      "person": "แม่",
+      "dueDate": "2026-10-15T16:00",
+      "settled": false,
+      "slip": null
+    },
+    {
+      "id": "tx_1791987865535",
+      "date": "2026-10-14T21:22",
+      "amount": 45,
+      "type": "lend",
+      "category": "🤝 จ่ายแทนเพื่อน (ค่าข้าว/ของ)",
+      "title": "โกโก้เย็น",
+      "person": "แม่",
+      "dueDate": "2026-10-15T16:00",
+      "settled": false,
+      "slip": null
+    },
+    {
+      "id": "tx_1791987844370",
+      "date": "2026-10-14T21:22",
+      "amount": 130,
+      "type": "lend",
+      "category": "🤝 จ่ายแทนเพื่อน (ค่าข้าว/ของ)",
+      "title": "ข้าวมันไก่ทอด",
+      "person": "แม่",
+      "dueDate": "2026-10-15T16:00",
+      "settled": false,
+      "slip": null
+    }
+  ],
+  "installments": [
+    {
+      "id": "inst_1791987973441",
+      "name": "Sony WH-1000XM6",
+      "monthly": 1099,
+      "totalMonths": 10,
+      "paidMonths": 0
+    },
+    {
+      "id": "inst_1791988015599",
+      "name": "Amazfit Bip Max/ Bip 6",
+      "monthly": 689,
+      "totalMonths": 3,
+      "paidMonths": 0
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": "sub_1791988170340",
+      "name": "MAKE Max Monthly",
+      "price": 79,
+      "billingDay": 31
+    },
+    {
+      "id": "sub_1791988183761",
+      "name": "Google Pro",
+      "price": 279,
+      "billingDay": 20
+    },
+    {
+      "id": "sub_1791988471268",
+      "name": "Apple Music",
+      "price": 79,
+      "billingDay": 28
+    }
+  ]
+}
