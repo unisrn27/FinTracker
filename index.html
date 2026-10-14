@@ -97,7 +97,7 @@
                 <p id="sumIncome" class="text-base sm:text-lg font-bold text-emerald-400 mt-0.5">฿0</p>
             </div>
             <div class="bg-ios-card border border-ios-border rounded-2xl p-3.5">
-                <p class="text-[11px] text-slate-400">จ่ายจริงเดือนนี้</p>
+                <p class="text-[11px] text-slate-400">รายจ่ายเดือนนี้</p>
                 <p id="sumExpense" class="text-base sm:text-lg font-bold text-rose-400 mt-0.5">฿0</p>
             </div>
             <div class="bg-ios-card border border-ios-border rounded-2xl p-3.5">
@@ -105,7 +105,7 @@
                 <p id="sumSaving" class="text-base sm:text-lg font-bold text-amber-400 mt-0.5">฿0</p>
             </div>
             <div class="bg-ios-card border border-ios-border rounded-2xl p-3.5" onclick="switchTab('installments')">
-                <p class="text-[11px] text-orange-300 flex items-center justify-between"><span>SPayLater + ผ่อน/Sub</span><span>›</span></p>
+                <p class="text-[11px] text-orange-300 flex items-center justify-between"><span>SPayLater + Subscription</span><span>›</span></p>
                 <p id="sumFixedPending" class="text-base sm:text-lg font-bold text-orange-400 mt-0.5">฿0</p>
             </div>
             <div class="bg-ios-card border border-ios-border rounded-2xl p-3.5" onclick="switchTab('debts')">
@@ -113,7 +113,7 @@
                 <p id="sumLent" class="text-base sm:text-lg font-bold text-sky-400 mt-0.5">฿0</p>
             </div>
             <div class="bg-gradient-to-br from-sky-900/60 to-indigo-950/80 border border-sky-500/40 rounded-2xl p-3.5">
-                <p class="text-[11px] text-sky-300">คงเหลือสุทธิในมือ</p>
+                <p class="text-[11px] text-sky-300">คงเหลือสุทธิ</p>
                 <p id="sumBalance" class="text-base sm:text-lg font-bold text-white mt-0.5">฿0</p>
             </div>
         </div>
@@ -129,33 +129,33 @@
                     </h2>
 
                     <form id="txForm" onsubmit="saveTransaction(event)" class="space-y-3.5">
-                        <div class="grid grid-cols-2 gap-2.5">
-                            <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">วัน-เวลา</label>
-                                <input type="datetime-local" id="txDate" required class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-2 text-white focus:border-sky-500 focus:outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">จำนวนเงิน (฿)</label>
-                                <input type="number" step="0.01" id="txAmount" placeholder="0.00" required class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-2 text-white font-bold focus:border-sky-500 focus:outline-none">
-                            </div>
-                        </div>
+                        <div class="grid grid-cols-5 gap-2.5">
+    <div class="col-span-3">
+        <label class="block text-[11px] text-slate-400 mb-1">วัน-เวลา</label>
+        <input type="datetime-local" id="txDate" required class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-2 text-white focus:border-sky-500 focus:outline-none">
+    </div>
+    <div class="col-span-2">
+        <label class="block text-[11px] text-slate-400 mb-1">จำนวนเงิน (฿)</label>
+        <input type="number" step="0.01" id="txAmount" placeholder="0.00" required class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-2 text-white font-bold focus:border-sky-500 focus:outline-none">
+    </div>
+</div>
 
                         <!-- Clean Main Type (No Parentheses) -->
                         <div class="grid grid-cols-2 gap-2.5">
                             <div>
                                 <label class="block text-[11px] text-slate-400 mb-1">ประเภทหลัก</label>
                                 <select id="txType" onchange="updateCategoryOptions('txType', 'txCategory', 'debtFields', 'txPerson', 'txDueDate')" class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-2 text-white focus:border-sky-500 focus:outline-none">
-                                    <option value="expense_var">🍜 รายจ่ายผันแปร</option>
+                                    <option value="expense_var">🍜 รายจ่าย</option>
                                     <option value="expense_free">🎮 เงินใช้อิสระ</option>
                                     <option value="expense_fix">🏠 รายจ่ายประจำ</option>
                                     <option value="saving">🐷 เงินออม</option>
-                                    <option value="lend">💸 ให้ยืม / จ่ายแทน</option>
+                                    <option value="lend">💸 ให้ยืม</option>
                                     <option value="borrow">🤝 ยืมเงิน</option>
                                     <option value="income">💰 รายรับ</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">หมวดหมู่ (ตัดงบอัตโนมัติ)</label>
+                                <label class="block text-[11px] text-slate-400 mb-1">หมวดหมู่</label>
                                 <select id="txCategory" onchange="showBudgetHint()" class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-2 text-white focus:border-sky-500 focus:outline-none"></select>
                             </div>
                         </div>
@@ -173,10 +173,10 @@
 
                         <!-- Conditional Debt/Lend Fields -->
                         <div id="debtFields" class="hidden bg-indigo-950/40 border border-indigo-500/40 rounded-2xl p-3 space-y-2.5">
-                            <div class="text-xs font-semibold text-indigo-300">📌 ข้อมูลการทวงเงิน / คืนเงิน</div>
+                            <div class="text-xs font-semibold text-indigo-300">📌 ข้อมูลการทวงเงิน</div>
                             <div class="grid grid-cols-2 gap-2.5">
                                 <div>
-                                    <label class="block text-[11px] text-slate-300 mb-1">ชื่อคนยืม / เจ้าหนี้</label>
+                                    <label class="block text-[11px] text-slate-300 mb-1">ชื่อคนยืม</label>
                                     <input type="text" id="txPerson" placeholder="เช่น แม่, โจนาธาน" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-1.5 text-white">
                                 </div>
                                 <div>
@@ -188,7 +188,7 @@
 
                         <!-- Slip Upload -->
                         <div>
-                            <label class="block text-[11px] text-slate-400 mb-1">แนบสลิป / ใบเสร็จ</label>
+                            <label class="block text-[11px] text-slate-400 mb-1">แนบสลิป</label>
                             <input type="file" id="txSlip" accept="image/*" onchange="previewSlip(event, 'slipPreviewBox', 'slipPreviewImg', false)" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-slate-800 file:text-sky-300">
                             <div id="slipPreviewBox" class="hidden mt-2 relative w-24 h-24 rounded-xl overflow-hidden border border-slate-600">
                                 <img id="slipPreviewImg" class="w-full h-full object-cover">
@@ -217,16 +217,16 @@
             <!-- Right: Daily Transactions List -->
             <div class="lg:col-span-7 bg-ios-card border border-ios-border rounded-3xl p-4 sm:p-5 flex flex-col">
                 <div class="flex flex-wrap justify-between items-center gap-2 mb-3.5">
-                    <h2 class="text-sm font-semibold text-white">📋 ประวัติรายการ (แตะ ✏️ เพื่อแก้ไข)</h2>
+                    <h2 class="text-sm font-semibold text-white">📋 ประวัติรายการ </h2>
                     <div class="flex gap-2 w-full sm:w-auto">
                         <input type="text" id="searchTx" oninput="renderTransactions()" placeholder="ค้นหารายการ / ชื่อคน..." class="flex-1 sm:w-44 bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500">
                         <select id="filterType" onchange="renderTransactions()" class="bg-ios-bg border border-slate-700/80 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none">
                             <option value="all">ทุกประเภท</option>
-                            <option value="expense_var">รายจ่ายผันแปร</option>
-                            <option value="expense_free">เงินใช้อิสระ</option>
+                            <option value="expense_var">รายจ่าย</option>
+                            <option value="expense_free">เงินใช้</option>
                             <option value="expense_fix">รายจ่ายประจำ</option>
                             <option value="saving">เงินออม</option>
-                            <option value="lend">ให้ยืม / จ่ายแทน</option>
+                            <option value="lend">ให้ยืม</option>
                             <option value="borrow">ยืมเงิน</option>
                             <option value="income">รายรับ</option>
                         </select>
@@ -243,7 +243,7 @@
             <div class="bg-gradient-to-br from-slate-900 via-indigo-950/50 to-slate-900 border border-indigo-500/30 rounded-3xl p-5">
                 <div class="flex flex-wrap justify-between items-start gap-4 mb-4">
                     <div>
-                        <h2 class="text-base font-bold text-white">🎯 จัดสรรสัดส่วนเงินประจำเดือน</h2>
+                        <h2 class="text-base font-bold text-white">🎯 จัดสรรเงินประจำเดือน</h2>
                         <p class="text-xs text-slate-400 mt-0.5">แบ่งเงินรายเดือนเข้าแต่ละหมวด เมื่อบันทึกใช้จ่ายจริง ระบบจะหักเงินออกจากหมวดนั้นทันที</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
@@ -295,7 +295,6 @@
                                 <h2 class="text-base font-bold text-white">ShopeePayLater (SPayLater)</h2>
                                 <span id="spayMonthBadge" class="text-[11px] bg-orange-500/20 text-orange-300 border border-orange-500/30 px-2 py-0.5 rounded-full font-medium"></span>
                             </div>
-                            <p class="text-xs text-slate-300 mt-1">รวมทุกรายการผ่อนใน SPayLater ของเดือนที่เลือก สามารถกดเข้าไปตั้งค่าแยกแต่ละรายการได้</p>
                             <div id="spayQuickSummary" class="flex flex-wrap gap-2 mt-2.5"></div>
                         </div>
                     </div>
@@ -338,13 +337,12 @@
                 <div class="bg-ios-card border border-ios-border rounded-3xl p-5">
                     <div class="mb-3.5">
                         <h2 class="text-sm font-semibold text-white">🔄 Subscription รายเดือน</h2>
-                        <p class="text-xs text-slate-400">กด ✏️ เพื่อแก้ไขราคาหรือวันตัดรอบได้ตลอดเวลา</p>
                     </div>
 
                     <form onsubmit="addSubscription(event)" class="bg-ios-bg border border-slate-800 rounded-2xl p-3 mb-4 grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                         <input type="text" id="subName" placeholder="ชื่อบริการ" required class="col-span-2 sm:col-span-1 bg-ios-card border border-slate-700 rounded-xl px-3 py-2 text-white">
                         <input type="number" step="0.01" id="subPrice" placeholder="ราคา (฿)" required class="bg-ios-card border border-slate-700 rounded-xl px-3 py-2 text-white">
-                        <input type="number" id="subBillingDay" placeholder="วันที่ตัดรอบ (1-31)" min="1" max="31" required class="bg-ios-card border border-slate-700 rounded-xl px-3 py-2 text-white">
+                        <input type="number" id="subBillingDay" placeholder="วันที่ตัดรอบ" min="1" max="31" required class="bg-ios-card border border-slate-700 rounded-xl px-3 py-2 text-white">
                         <button type="submit" class="col-span-2 sm:col-span-3 bg-purple-600 active:bg-purple-500 text-white font-semibold rounded-xl py-2 transition">+ เพิ่ม Subscription</button>
                     </form>
 
@@ -362,8 +360,7 @@
             </div>
 
             <div class="bg-ios-card border border-ios-border rounded-3xl p-5">
-                <h2 class="text-sm font-semibold text-rose-400 mb-1">⏳ ต้องคืนเงิน (ยืมเงินคนอื่น)</h2>
-                <p class="text-xs text-slate-400 mb-4">รายการที่ยืมมา เมื่อกดโอนคืนแล้วจะไปตัดออกจากเงินคงเหลือสุทธิ</p>
+                <h2 class="text-sm font-semibold text-rose-400 mb-1">⏳ ต้องคืนเงิน </h2>
                 <div id="borrowList" class="space-y-2.5"></div>
             </div>
         </section>
@@ -371,8 +368,7 @@
         <!-- ==================== TAB 5: SLIP GALLERY ==================== -->
         <section id="view-slips" class="hidden bg-ios-card border border-ios-border rounded-3xl p-5">
             <div class="mb-4">
-                <h2 class="text-sm font-semibold text-white">🧾 คลังรูปสลิปโอนเงินและใบเสร็จ</h2>
-                <p class="text-xs text-slate-400">เก็บรูปสลิปไว้ในเครื่องผ่าน IndexedDB กดดูรูปขยายหรือบันทึกเก็บลงแอปรูปภาพได้</p>
+                <h2 class="text-sm font-semibold text-white">🧾 คลังรูปสลิปโอนเงิน</h2>
             </div>
             <div id="slipGallery" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5"></div>
         </section>
@@ -452,7 +448,7 @@
                 <div id="editDebtFields" class="hidden bg-indigo-950/40 border border-indigo-500/40 rounded-2xl p-3 space-y-2.5">
                     <div class="grid grid-cols-2 gap-2.5">
                         <div>
-                            <label class="block text-[11px] text-slate-300 mb-1">ชื่อคนยืม / เจ้าหนี้</label>
+                            <label class="block text-[11px] text-slate-300 mb-1">ชื่อคนยืม</label>
                             <input type="text" id="editTxPerson" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-1.5 text-white">
                         </div>
                         <div>
@@ -462,7 +458,7 @@
                     </div>
                     <label class="flex items-center gap-2 text-xs text-slate-300 pt-1 cursor-pointer">
                         <input type="checkbox" id="editTxSettled" class="rounded bg-ios-bg border-slate-600 text-sky-500">
-                        <span>เคลียร์ยอด / คืนเงินเรียบร้อยแล้ว</span>
+                        <span>เคลียร์ยอด</span>
                     </label>
                 </div>
                 <div>
@@ -593,42 +589,41 @@
         // --- หมวดหมู่ย่อย (จับคู่กับระบบตัดงบอัตโนมัติ) ---
         const CATEGORIES = {
             expense_var: [
-                '🍜 ค่าอาหาร / เครื่องดื่ม',
-                '🚌 ค่าเดินทาง / น้ำมัน',
-                '🧺 ซักผ้า / ของใช้เข้าห้อง',
-                '💇‍♂️ ตัดผม / ดูแลตัวเอง',
-                '💊 สุขภาพ / อาหารเสริม',
-                '📚 การเรียน / อุปกรณ์',
-                '📦 อื่นๆ (ผันแปร)'
+                '🍜 ค่าอาหาร',
+                '🚌 ค่าเดินทาง',
+                '🧺 ซักผ้า',
+                '💇‍♂️ ตัดผม',
+                '💊 อาหารเสริม',
+                '📚 การเรียน',
+                '📦 อื่นๆ'
             ],
             expense_free: [
-                '🎮 เกม / บันเทิง',
-                '🛍️ ช้อปปิ้ง / แกดเจ็ต',
+                '🎮 บันเทิง',
+                '🛍️ ช้อปปิ้ง',
                 '☕ คาเฟ่ / สังสรรค์',
                 '🎁 เปย์ตัวเอง'
             ],
             expense_fix: [
                 '💳 ผ่อนชำระสินค้า',
-                '🔄 Subscription รายเดือน',
+                '🔄 Subscription',
                 '🏠 ค่าหอ / ค่าน้ำ-ไฟ / เน็ต',
-                '📱 ค่าโทรศัพท์'
             ],
             saving: [
                 '🏦 เงินออมฉุกเฉิน',
-                '📈 ลงทุน / กองทุน / หุ้น',
+                '📈 ลงทุน',
                 '🎯 ออมเพื่อเป้าหมาย'
             ],
             lend: [
-                '🤝 จ่ายแทนเพื่อน (ค่าข้าว/ของ)',
+                '🤝 จ่ายแทน',
                 '💸 ให้ยืมเงินสด'
             ],
             borrow: [
-                '🙌 ยืมเงินเพื่อน/ครอบครัว',
+                '🙌 ยืมเงิน',
                 '⏳ ติดค่าของรอโอนคืน'
             ],
             income: [
-                '💼 เงินรายเดือน / ทางบ้านให้',
-                '💻 รายได้พิเศษ / ฟรีแลนซ์',
+                '💼 เงินรายเดือน',
+                '💻 รายได้พิเศษ',
                 '🔄 รับเงินคืนจากเพื่อน',
                 '🎁 รายรับอื่นๆ'
             ]
@@ -636,17 +631,17 @@
 
         // หมวดหมู่ที่ใช้ตั้งงบประมาณประจำเดือน (Budget Pockets)
         const BUDGET_CATEGORIES = [
-            { cat: '🍜 ค่าอาหาร / เครื่องดื่ม', group: 'รายจ่ายผันแปร', color: '#f43f5e', defaultBgt: 3500 },
-            { cat: '🚌 ค่าเดินทาง / น้ำมัน', group: 'รายจ่ายผันแปร', color: '#fb923c', defaultBgt: 800 },
-            { cat: '🧺 ซักผ้า / ของใช้เข้าห้อง', group: 'รายจ่ายผันแปร', color: '#38bdf8', defaultBgt: 300 },
-            { cat: '💇‍♂️ ตัดผม / ดูแลตัวเอง', group: 'รายจ่ายผันแปร', color: '#818cf8', defaultBgt: 300 },
-            { cat: '💊 สุขภาพ / อาหารเสริม', group: 'รายจ่ายผันแปร', color: '#2dd4bf', defaultBgt: 500 },
-            { cat: '📚 การเรียน / อุปกรณ์', group: 'รายจ่ายผันแปร', color: '#60a5fa', defaultBgt: 300 },
+            { cat: '🍜 ค่าอาหาร', group: 'รายจ่ายผันแปร', color: '#f43f5e', defaultBgt: 3500 },
+            { cat: '🚌 ค่าเดินทาง', group: 'รายจ่ายผันแปร', color: '#fb923c', defaultBgt: 800 },
+            { cat: '🧺 ซักผ้า', group: 'รายจ่ายผันแปร', color: '#38bdf8', defaultBgt: 300 },
+            { cat: '💇‍♂️ ตัดผม', group: 'รายจ่ายผันแปร', color: '#818cf8', defaultBgt: 300 },
+            { cat: '💊 อาหารเสริม', group: 'รายจ่ายผันแปร', color: '#2dd4bf', defaultBgt: 500 },
+            { cat: '📚 การเรียน', group: 'รายจ่ายผันแปร', color: '#60a5fa', defaultBgt: 300 },
             { cat: '💳 ผ่อนชำระสินค้า', group: 'รายจ่ายประจำ', color: '#f97316', defaultBgt: 1788 },
-            { cat: '🔄 Subscription รายเดือน', group: 'รายจ่ายประจำ', color: '#a855f7', defaultBgt: 437 },
+            { cat: '🔄 Subscription', group: 'รายจ่ายประจำ', color: '#a855f7', defaultBgt: 437 },
             { cat: '🏠 ค่าหอ / ค่าน้ำ-ไฟ / เน็ต', group: 'รายจ่ายประจำ', color: '#c084fc', defaultBgt: 0 },
-            { cat: '🎮 เกม / บันเทิง', group: 'เงินใช้อิสระ', color: '#ec4899', defaultBgt: 500 },
-            { cat: '🛍️ ช้อปปิ้ง / แกดเจ็ต', group: 'เงินใช้อิสระ', color: '#f472b6', defaultBgt: 500 },
+            { cat: '🎮 บันเทิง', group: 'เงินใช้อิสระ', color: '#ec4899', defaultBgt: 500 },
+            { cat: '🛍️ ช้อปปิ้ง', group: 'เงินใช้อิสระ', color: '#f472b6', defaultBgt: 500 },
             { cat: '☕ คาเฟ่ / สังสรรค์', group: 'เงินใช้อิสระ', color: '#fb7185', defaultBgt: 400 },
             { cat: '🏦 เงินออมฉุกเฉิน', group: 'เงินออม', color: '#fbbf24', defaultBgt: 5000 }
         ];
@@ -656,7 +651,7 @@
             expense_free: '🎮 เงินใช้อิสระ',
             expense_fix: '🏠 รายจ่ายประจำ',
             saving: '🐷 เงินออม',
-            lend: '💸 ให้ยืม / จ่ายแทน',
+            lend: '💸 ให้ยืม',
             borrow: '🤝 ยืมเงิน',
             income: '💰 รายรับ'
         };
