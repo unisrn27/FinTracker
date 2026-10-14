@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th" class="dark">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -38,10 +38,14 @@
             color: #f8fafc;
             -webkit-tap-highlight-color: transparent;
             padding-top: var(--sat);
-            padding-bottom: calc(5.5rem + var(--sab));
+            padding-bottom: calc(5rem + var(--sab));
+            overflow-x: hidden;
         }
-        /* ป้องกัน iOS Safari ซูมหน้าจออัตโนมัติเมื่อแตะ input */
-        input, select, textarea { font-size: 16px !important; }
+        input, select, textarea {
+            font-size: 15px !important;
+            min-width: 0;
+            color-scheme: dark;
+        }
         .glass-header {
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(20px);
@@ -53,8 +57,21 @@
             -webkit-backdrop-filter: blur(24px);
             padding-bottom: var(--sab);
         }
-        .nav-active { color: #38bdf8; }
-        .nav-active .nav-indicator { opacity: 1; transform: scaleX(1); }
+        .nav-btn {
+            color: #94a3b8;
+            transition: all 0.2s ease;
+        }
+        .nav-active {
+            color: #38bdf8;
+        }
+        .nav-active .nav-dot {
+            opacity: 1;
+            transform: scaleX(1);
+        }
+        /* ล็อกความสูงส่วนแรกของหน้า Home และ Allocate ให้เต็มหน้าจอพอดี */
+        .first-fold-screen {
+            min-height: calc(100dvh - 8.6rem - var(--sat) - var(--sab));
+        }
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
@@ -62,598 +79,626 @@
 </head>
 <body class="min-h-screen flex flex-col selection:bg-sky-500 selection:text-white">
 
-    <!-- Top Header (Sticky & iOS Glass) -->
+    <!-- Top Header (Fixed Overflow & Original Stacked Month Layout) -->
     <header class="glass-header border-b border-slate-800/80 sticky top-0 z-30">
-        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center gap-2">
-            <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center font-bold text-lg shadow-lg shadow-sky-500/20">฿</div>
-                <div>
-                    <h1 class="text-base font-bold tracking-tight text-white leading-tight">FinTrack <span class="text-[10px] font-medium bg-sky-500/20 text-sky-300 px-1.5 py-0.5 rounded-full ml-1">iOS Pro</span></h1>
-                    <div class="flex items-center gap-1 mt-0.5">
-                        <input type="month" id="monthFilter" class="bg-transparent text-xs text-sky-400 font-semibold focus:outline-none cursor-pointer p-0" onchange="onMonthChange()">
+        <div class="max-w-lg mx-auto px-3.5 py-2.5 flex justify-between items-center gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center font-bold text-lg text-white shadow-lg shadow-sky-500/20 shrink-0">฿</div>
+                <div class="min-w-0">
+                    <h1 class="text-sm sm:text-base font-bold tracking-tight text-white leading-tight flex items-center gap-1.5">
+                        <span>FinTrack</span>
+                        <span class="text-[10px] font-medium bg-sky-500/20 text-sky-300 px-1.5 py-0.5 rounded-full">iOS Pro</span>
+                    </h1>
+                    <div class="flex items-center mt-0.5">
+                        <input type="month" id="monthFilter" onchange="onMonthChange()" class="bg-transparent text-xs text-sky-400 font-semibold focus:outline-none cursor-pointer p-0">
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-1.5">
-                <button onclick="exportData()" class="text-xs bg-slate-800/90 active:bg-slate-700 border border-slate-700 text-slate-200 px-2.5 py-2 rounded-xl transition flex items-center gap-1">
-                    <span>💾</span> <span class="hidden sm:inline">Backup</span>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="exportBackupJSON()" class="text-xs bg-slate-800/90 active:bg-slate-700 border border-slate-700 text-slate-200 px-2.5 py-1.5 rounded-xl transition flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/></svg>
+                    <span>Backup</span>
                 </button>
-                <label class="text-xs bg-indigo-600/90 active:bg-indigo-500 text-white px-2.5 py-2 rounded-xl transition cursor-pointer flex items-center gap-1">
-                    <span>📂</span> <span class="hidden sm:inline">Restore</span>
-                    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(event)">
+                <label class="text-xs bg-indigo-600/90 active:bg-indigo-500 text-white px-2.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <span>Restore</span>
+                    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importBackupJSON(event)">
                 </label>
             </div>
         </div>
     </header>
 
     <!-- Main Container -->
-    <main class="max-w-5xl mx-auto px-3.5 pt-4 flex-1 w-full space-y-5">
+    <main class="max-w-lg mx-auto px-3.5 pt-3 flex-1 w-full">
 
-        <!-- Top Summary Bento Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-            <div class="bg-ios-card border border-ios-border rounded-2xl p-3.5">
-                <p class="text-[11px] text-slate-400">รายรับเดือนนี้</p>
-                <p id="sumIncome" class="text-base sm:text-lg font-bold text-emerald-400 mt-0.5">฿0</p>
-            </div>
-            <div class="bg-ios-card border border-ios-border rounded-2xl p-3.5">
-                <p class="text-[11px] text-slate-400">รายจ่ายเดือนนี้</p>
-                <p id="sumExpense" class="text-base sm:text-lg font-bold text-rose-400 mt-0.5">฿0</p>
-            </div>
-            <div class="bg-ios-card border border-ios-border rounded-2xl p-3.5">
-                <p class="text-[11px] text-slate-400">เงินออมสะสม</p>
-                <p id="sumSaving" class="text-base sm:text-lg font-bold text-amber-400 mt-0.5">฿0</p>
-            </div>
-            <div class="bg-ios-card border border-ios-border rounded-2xl p-3.5" onclick="switchTab('installments')">
-                <p class="text-[11px] text-orange-300 flex items-center justify-between"><span>SPayLater + Subscription</span><span>›</span></p>
-                <p id="sumFixedPending" class="text-base sm:text-lg font-bold text-orange-400 mt-0.5">฿0</p>
-            </div>
-            <div class="bg-ios-card border border-ios-border rounded-2xl p-3.5" onclick="switchTab('debts')">
-                <p class="text-[11px] text-sky-300 flex items-center justify-between"><span>รอทวงคืน</span><span>›</span></p>
-                <p id="sumLent" class="text-base sm:text-lg font-bold text-sky-400 mt-0.5">฿0</p>
-            </div>
-            <div class="bg-gradient-to-br from-sky-900/60 to-indigo-950/80 border border-sky-500/40 rounded-2xl p-3.5">
-                <p class="text-[11px] text-sky-300">คงเหลือสุทธิ</p>
-                <p id="sumBalance" class="text-base sm:text-lg font-bold text-white mt-0.5">฿0</p>
-            </div>
-        </div>
+        <!-- ==================== PAGE 1: HOME ==================== -->
+        <section id="view-home" class="space-y-6 pb-4">
+            <!-- First Fold: Enlarged 6 Summary Boxes + Compact New Entry -->
+            <div class="first-fold-screen flex flex-col justify-between gap-3.5">
 
-        <!-- ==================== TAB 1: DASHBOARD & DAILY LOG ==================== -->
-        <section id="view-dashboard" class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            <!-- Left: Quick Add Form + Monthly Proportions -->
-            <div class="lg:col-span-5 space-y-5">
-                <div class="bg-ios-card border border-ios-border rounded-3xl p-4 sm:p-5 shadow-xl">
-                    <h2 class="text-sm font-semibold text-white mb-3.5 flex items-center justify-between">
-                        <span class="flex items-center gap-2"><span>⚡</span> บันทึกรายการประจำวัน</span>
-                        <button type="button" onclick="switchTab('budgets')" class="text-xs text-sky-400 font-normal">ดูงบคงเหลือ ›</button>
-                    </h2>
+                <!-- Top Section: 6 Large Summary Boxes (Expands to fill upper space) -->
+                <div class="grid grid-cols-2 gap-2.5 flex-1">
+                    <div class="bg-ios-card border border-ios-border rounded-2xl p-4 flex flex-col justify-between">
+                        <p class="text-xs text-slate-400 font-medium">Income</p>
+                        <p id="sumIncome" class="text-xl sm:text-2xl font-bold text-emerald-400 mt-1 truncate">฿0</p>
+                    </div>
+                    <div class="bg-ios-card border border-ios-border rounded-2xl p-4 flex flex-col justify-between">
+                        <p class="text-xs text-slate-400 font-medium">Expense</p>
+                        <p id="sumExpense" class="text-xl sm:text-2xl font-bold text-rose-400 mt-1 truncate">฿0</p>
+                    </div>
+                    <div class="bg-ios-card border border-ios-border rounded-2xl p-4 flex flex-col justify-between">
+                        <p class="text-xs text-slate-400 font-medium">Savings</p>
+                        <p id="sumSaving" class="text-xl sm:text-2xl font-bold text-amber-400 mt-1 truncate">฿0</p>
+                    </div>
+                    <div onclick="switchTab('allocate')" class="bg-ios-card border border-ios-border hover:border-orange-500/40 rounded-2xl p-4 flex flex-col justify-between cursor-pointer transition">
+                        <p class="text-xs text-orange-300 font-medium flex items-center justify-between">
+                            <span>SPay + Sub</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </p>
+                        <p id="sumFixedPending" class="text-xl sm:text-2xl font-bold text-orange-400 mt-1 truncate">฿0</p>
+                    </div>
+                    <div onclick="switchTab('allocate')" class="bg-ios-card border border-ios-border hover:border-sky-500/40 rounded-2xl p-4 flex flex-col justify-between cursor-pointer transition">
+                        <p class="text-xs text-sky-300 font-medium flex items-center justify-between">
+                            <span>Lent</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </p>
+                        <p id="sumLent" class="text-xl sm:text-2xl font-bold text-sky-400 mt-1 truncate">฿0</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-sky-900/60 to-indigo-950/80 border border-sky-500/40 rounded-2xl p-4 flex flex-col justify-between shadow-lg shadow-sky-950/30">
+                        <p class="text-xs text-sky-300 font-medium">Net Balance</p>
+                        <p id="sumBalance" class="text-xl sm:text-2xl font-bold text-white mt-1 truncate">฿0</p>
+                    </div>
+                </div>
 
-                    <form id="txForm" onsubmit="saveTransaction(event)" class="space-y-3.5">
-                        <div class="grid grid-cols-5 gap-2.5">
-    <div class="col-span-3">
-        <label class="block text-[11px] text-slate-400 mb-1">วัน-เวลา</label>
-        <input type="datetime-local" id="txDate" required class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-2 text-white focus:border-sky-500 focus:outline-none">
-    </div>
-    <div class="col-span-2">
-        <label class="block text-[11px] text-slate-400 mb-1">จำนวนเงิน (฿)</label>
-        <input type="number" step="0.01" id="txAmount" placeholder="0.00" required class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-2 text-white font-bold focus:border-sky-500 focus:outline-none">
-    </div>
-</div>
+                <!-- Middle Section: Compact & Fitted New Entry Card -->
+                <div class="bg-ios-card border border-ios-border rounded-3xl p-4 shadow-xl shrink-0">
+                    <div class="flex justify-between items-center mb-2.5">
+                        <div class="flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            <h2 class="text-sm font-semibold text-white">New Entry</h2>
+                        </div>
+                        <span id="budgetHintValue" class="text-[11px] font-semibold text-sky-400 bg-slate-900/90 border border-slate-800 px-2.5 py-1 rounded-xl">Budget: ฿0</span>
+                    </div>
 
-                        <!-- Clean Main Type (No Parentheses) -->
-                        <div class="grid grid-cols-2 gap-2.5">
-                            <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">ประเภทหลัก</label>
-                                <select id="txType" onchange="updateCategoryOptions('txType', 'txCategory', 'debtFields', 'txPerson', 'txDueDate')" class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-2 text-white focus:border-sky-500 focus:outline-none">
-                                    <option value="expense_var">🍜 รายจ่าย</option>
-                                    <option value="expense_free">🎮 เงินใช้อิสระ</option>
-                                    <option value="expense_fix">🏠 รายจ่ายประจำ</option>
-                                    <option value="saving">🐷 เงินออม</option>
-                                    <option value="lend">💸 ให้ยืม</option>
-                                    <option value="borrow">🤝 ยืมเงิน</option>
-                                    <option value="income">💰 รายรับ</option>
+                    <form id="txForm" onsubmit="saveTransaction(event)" class="space-y-2.5">
+                        <!-- Date-Time & Amount -->
+                        <div class="grid grid-cols-12 gap-2">
+                            <div class="col-span-7 min-w-0">
+                                <label class="block text-[11px] text-slate-400 mb-1">Date & Time</label>
+                                <input type="datetime-local" id="txDate" required class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-2.5 py-2 text-white focus:border-sky-500 focus:outline-none">
+                            </div>
+                            <div class="col-span-5 min-w-0">
+                                <label class="block text-[11px] text-slate-400 mb-1">Amount (฿)</label>
+                                <input type="number" step="0.01" id="txAmount" placeholder="0.00" required class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-2.5 py-2 text-white font-bold focus:border-sky-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Type & Category -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="min-w-0">
+                                <label class="block text-[11px] text-slate-400 mb-1">Type</label>
+                                <select id="txType" onchange="updateCategoryOptions('txType', 'txCategory', 'debtFields', 'txPerson', 'txDueDate')" class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-2.5 py-2 text-white focus:border-sky-500 focus:outline-none">
+                                    <option value="expense">Expense</option>
+                                    <option value="saving">Savings</option>
+                                    <option value="lend">Lend</option>
+                                    <option value="borrow">Borrow</option>
+                                    <option value="income">Income</option>
                                 </select>
                             </div>
-                            <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">หมวดหมู่</label>
-                                <select id="txCategory" onchange="showBudgetHint()" class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-2 text-white focus:border-sky-500 focus:outline-none"></select>
+                            <div class="min-w-0">
+                                <label class="block text-[11px] text-slate-400 mb-1">Category</label>
+                                <select id="txCategory" onchange="showBudgetHint()" class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-2.5 py-2 text-white focus:border-sky-500 focus:outline-none"></select>
                             </div>
                         </div>
 
-                        <!-- Live Budget Remaining Hint -->
-                        <div id="budgetHintBox" class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2 flex justify-between items-center text-xs">
-                            <span id="budgetHintLabel" class="text-slate-400">งบหมวดนี้:</span>
-                            <span id="budgetHintValue" class="font-semibold text-sky-400">฿0</span>
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] text-slate-400 mb-1">ชื่อรายการ</label>
-                            <input type="text" id="txTitle" placeholder="เช่น ข้าวมันไก่ทอด, วินมอไซค์, กาแฟ" required class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-2 text-white focus:border-sky-500 focus:outline-none">
-                        </div>
-
-                        <!-- Conditional Debt/Lend Fields -->
-                        <div id="debtFields" class="hidden bg-indigo-950/40 border border-indigo-500/40 rounded-2xl p-3 space-y-2.5">
-                            <div class="text-xs font-semibold text-indigo-300">📌 ข้อมูลการทวงเงิน</div>
-                            <div class="grid grid-cols-2 gap-2.5">
-                                <div>
-                                    <label class="block text-[11px] text-slate-300 mb-1">ชื่อคนยืม</label>
-                                    <input type="text" id="txPerson" placeholder="เช่น แม่, โจนาธาน" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-1.5 text-white">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] text-slate-300 mb-1">วัน-เวลานัดคืน</label>
-                                    <input type="datetime-local" id="txDueDate" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-1.5 text-white">
-                                </div>
+                        <!-- Conditional Lend/Borrow Fields -->
+                        <div id="debtFields" class="hidden bg-indigo-950/40 border border-indigo-500/40 rounded-2xl p-2.5 grid grid-cols-2 gap-2">
+                            <div class="min-w-0">
+                                <label class="block text-[10px] text-slate-300 mb-0.5">Person</label>
+                                <input type="text" id="txPerson" placeholder="Name" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-1.5 text-white">
+                            </div>
+                            <div class="min-w-0">
+                                <label class="block text-[10px] text-slate-300 mb-0.5">Due Date</label>
+                                <input type="datetime-local" id="txDueDate" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-1.5 text-white">
                             </div>
                         </div>
 
-                        <!-- Slip Upload -->
-                        <div>
-                            <label class="block text-[11px] text-slate-400 mb-1">แนบสลิป</label>
-                            <input type="file" id="txSlip" accept="image/*" onchange="previewSlip(event, 'slipPreviewBox', 'slipPreviewImg', false)" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-slate-800 file:text-sky-300">
-                            <div id="slipPreviewBox" class="hidden mt-2 relative w-24 h-24 rounded-xl overflow-hidden border border-slate-600">
-                                <img id="slipPreviewImg" class="w-full h-full object-cover">
-                                <button type="button" onclick="clearSlipPreview(false)" class="absolute top-1 right-1 bg-rose-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">×</button>
+                        <!-- Note & Slip Upload -->
+                        <div class="flex gap-2 items-end">
+                            <div class="flex-1 min-w-0">
+                                <label class="block text-[11px] text-slate-400 mb-1">Note</label>
+                                <input type="text" id="txTitle" placeholder="Item description" required class="w-full bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-2 text-white focus:border-sky-500 focus:outline-none">
                             </div>
+                            <label class="shrink-0 bg-ios-bg hover:bg-slate-800 border border-slate-700/80 text-slate-300 rounded-xl px-3 py-2 text-xs font-medium cursor-pointer flex items-center gap-1.5 transition">
+                                <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                <span id="slipBtnText">Slip</span>
+                                <input type="file" id="txSlip" accept="image/*" onchange="previewSlip(event)" class="hidden">
+                            </label>
+                            <button type="button" id="clearSlipBtn" onclick="clearSlipPreview()" class="hidden shrink-0 bg-rose-500/20 border border-rose-500/40 text-rose-300 rounded-xl px-2.5 py-2 text-xs">✕</button>
                         </div>
 
-                        <button type="submit" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 active:scale-[0.99] text-white font-semibold py-3 rounded-2xl shadow-lg shadow-sky-500/20 transition">
-                            + บันทึกรายการ
+                        <button type="submit" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 active:scale-[0.99] text-white font-semibold py-2.5 rounded-2xl shadow-lg shadow-sky-500/20 transition text-sm">
+                            + Add Transaction
                         </button>
                     </form>
                 </div>
-
-                <!-- Monthly Spending Proportions Card -->
-                <div class="bg-ios-card border border-ios-border rounded-3xl p-4 sm:p-5">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-sm font-semibold text-white">📊 สัดส่วนการใช้เงินเดือนนี้</h3>
-                        <span id="proportionTotalLabel" class="text-xs text-slate-400"></span>
-                    </div>
-                    <!-- Multi-segment stacked bar -->
-                    <div id="proportionStackedBar" class="w-full h-3.5 bg-ios-bg rounded-full overflow-hidden flex mb-4 border border-slate-800"></div>
-                    <div id="categoryBreakdown" class="space-y-2.5 text-xs"></div>
-                </div>
             </div>
 
-            <!-- Right: Daily Transactions List -->
-            <div class="lg:col-span-7 bg-ios-card border border-ios-border rounded-3xl p-4 sm:p-5 flex flex-col">
-                <div class="flex flex-wrap justify-between items-center gap-2 mb-3.5">
-                    <h2 class="text-sm font-semibold text-white">📋 ประวัติรายการ </h2>
-                    <div class="flex gap-2 w-full sm:w-auto">
-                        <input type="text" id="searchTx" oninput="renderTransactions()" placeholder="ค้นหารายการ / ชื่อคน..." class="flex-1 sm:w-44 bg-ios-bg border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500">
+            <!-- Below the Fold: Scroll Down for History -->
+            <div class="bg-ios-card border border-ios-border rounded-3xl p-4 sm:p-5">
+                <div class="flex justify-between items-center gap-2 mb-3.5">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <h2 class="text-sm font-semibold text-white">History</h2>
+                    </div>
+                    <div class="flex gap-2 flex-1 justify-end">
+                        <input type="text" id="searchTx" oninput="renderTransactions()" placeholder="Search..." class="w-28 sm:w-40 bg-ios-bg border border-slate-700/80 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-sky-500">
                         <select id="filterType" onchange="renderTransactions()" class="bg-ios-bg border border-slate-700/80 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none">
-                            <option value="all">ทุกประเภท</option>
-                            <option value="expense_var">รายจ่าย</option>
-                            <option value="expense_free">เงินใช้</option>
-                            <option value="expense_fix">รายจ่ายประจำ</option>
-                            <option value="saving">เงินออม</option>
-                            <option value="lend">ให้ยืม</option>
-                            <option value="borrow">ยืมเงิน</option>
-                            <option value="income">รายรับ</option>
+                            <option value="all">All</option>
+                            <option value="expense">Expense</option>
+                            <option value="saving">Savings</option>
+                            <option value="lend">Lend</option>
+                            <option value="borrow">Borrow</option>
+                            <option value="income">Income</option>
                         </select>
                     </div>
                 </div>
-
-                <div id="txList" class="space-y-2.5 overflow-y-auto max-h-[680px] pr-0.5"></div>
+                <div id="txList" class="space-y-2"></div>
             </div>
         </section>
 
-        <!-- ==================== TAB 2: BUDGET ALLOCATION (จัดสรรเงินรายเดือน) ==================== -->
-        <section id="view-budgets" class="hidden space-y-5">
-            <!-- Overview Header Card -->
-            <div class="bg-gradient-to-br from-slate-900 via-indigo-950/50 to-slate-900 border border-indigo-500/30 rounded-3xl p-5">
-                <div class="flex flex-wrap justify-between items-start gap-4 mb-4">
-                    <div>
-                        <h2 class="text-base font-bold text-white">🎯 จัดสรรเงินประจำเดือน</h2>
-                        <p class="text-xs text-slate-400 mt-0.5">แบ่งเงินรายเดือนเข้าแต่ละหมวด เมื่อบันทึกใช้จ่ายจริง ระบบจะหักเงินออกจากหมวดนั้นทันที</p>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="autoSyncFixedBudgets()" class="text-xs bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-300 px-3 py-2 rounded-xl font-medium transition">
-                            ⚡ ดึงยอดผ่อน SPayLater + Sub เข้าหมวดงบอัตโนมัติ
-                        </button>
-                        <button onclick="copyPreviousMonthBudget()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-2 rounded-xl transition">
-                            📋 คัดลอกงบจากเดือนก่อน
-                        </button>
-                    </div>
+        <!-- ==================== PAGE 2: SUMMARY ==================== -->
+        <section id="view-summary" class="hidden space-y-4 pb-4">
+            <!-- Section 1: Large All-Category Spending Share Pie Chart -->
+            <div class="bg-ios-card border border-ios-border rounded-3xl p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-sm font-semibold text-white">Spending Share</h2>
+                    <span id="pieCountBadge" class="text-xs text-slate-400">0 Categories</span>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                    <div class="bg-ios-bg/80 border border-slate-800 rounded-2xl p-3">
-                        <p class="text-[11px] text-slate-400">รายรับตั้งต้นเดือนนี้</p>
-                        <p id="bgtTotalIncome" class="text-lg font-bold text-emerald-400 mt-0.5">฿0</p>
-                    </div>
-                    <div class="bg-ios-bg/80 border border-slate-800 rounded-2xl p-3">
-                        <p class="text-[11px] text-slate-400">จัดสรรงบไปแล้ว</p>
-                        <p id="bgtTotalAllocated" class="text-lg font-bold text-sky-400 mt-0.5">฿0</p>
-                    </div>
-                    <div class="bg-ios-bg/80 border border-slate-800 rounded-2xl p-3">
-                        <p class="text-[11px] text-slate-400">ใช้จ่ายจริงรวม (รวมออม)</p>
-                        <p id="bgtTotalUsed" class="text-lg font-bold text-rose-400 mt-0.5">฿0</p>
-                    </div>
-                    <div class="bg-ios-bg/80 border border-slate-800 rounded-2xl p-3">
-                        <p class="text-[11px] text-slate-400">เงินที่ยังไม่ได้จัดสรร</p>
-                        <p id="bgtUnallocated" class="text-lg font-bold text-amber-400 mt-0.5">฿0</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Budget Pockets Grid -->
-            <div id="budgetPocketsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
-        </section>
-
-        <!-- ==================== TAB 3: INSTALLMENTS, SHOPEEPAYLATER & SUBSCRIPTIONS ==================== -->
-        <section id="view-installments" class="hidden space-y-6">
-
-            <!-- SPECIAL FEATURE: ShopeePayLater Card -->
-            <div class="bg-gradient-to-br from-orange-950/70 via-ios-card to-ios-card border-2 border-orange-500/50 rounded-3xl p-5 shadow-xl">
-                <div class="flex flex-wrap justify-between items-start gap-4">
-                    <div class="flex items-start gap-3.5">
-                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-rose-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-orange-500/30 shrink-0">
-                            S
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <h2 class="text-base font-bold text-white">ShopeePayLater (SPayLater)</h2>
-                                <span id="spayMonthBadge" class="text-[11px] bg-orange-500/20 text-orange-300 border border-orange-500/30 px-2 py-0.5 rounded-full font-medium"></span>
+                <div class="flex flex-col items-center justify-center my-2">
+                    <div class="relative w-56 h-56 flex items-center justify-center">
+                        <svg id="pieChartSvg" viewBox="-1 -1 2 2" class="w-full h-full -rotate-90 rounded-full shadow-inner"></svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <div class="w-32 h-32 rounded-full bg-ios-card border border-slate-800/80 flex flex-col items-center justify-center text-center p-2 shadow-lg">
+                                <span id="pieCenterLabel" class="text-[10px] font-medium text-slate-400 uppercase tracking-wider truncate w-24">Total Outflow</span>
+                                <span id="pieCenterValue" class="text-base font-bold text-white mt-0.5">฿0</span>
                             </div>
-                            <div id="spayQuickSummary" class="flex flex-wrap gap-2 mt-2.5"></div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="bg-ios-bg/90 border border-orange-500/40 rounded-2xl p-4 min-w-[240px] flex-1 sm:flex-initial text-right">
-                        <p class="text-xs text-orange-300">ยอดต้องจ่ายเดือนนี้ (<span id="spayTargetMonthText"></span>)</p>
-                        <p id="spayMonthlyTotal" class="text-2xl font-bold text-white mt-0.5">฿0</p>
-                        <p id="spayRemainingTotal" class="text-[11px] text-slate-400 mt-0.5">ยอดคงเหลือรวมทุกงวด: ฿0</p>
-                        <div class="flex justify-end gap-2 mt-3">
-                            <button onclick="openSpayModal()" class="bg-orange-500 hover:bg-orange-400 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow transition">
-                                ⚙️ ตั้งค่า / จัดสรรไส้ใน
-                            </button>
-                            <button onclick="paySpayLaterMonth()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition">
-                                ✓ จ่ายบิลเดือนนี้
-                            </button>
-                        </div>
+                <!-- Full Multi-Category Comparison List -->
+                <div id="pieLegendList" class="mt-5 space-y-2.5"></div>
+
+                <!-- Optional Expandable Category Transactions -->
+                <div id="summaryCategoryItemsBox" class="hidden mt-4 pt-3.5 border-t border-slate-800">
+                    <div class="flex justify-between items-center mb-2">
+                        <span id="summaryCategoryTitle" class="text-xs font-bold text-sky-400"></span>
+                        <button onclick="clearSelectedPieCategory()" class="text-[11px] text-slate-400 hover:text-white">Close ✕</button>
+                    </div>
+                    <div id="summaryCategoryItemsList" class="space-y-1.5 max-h-44 overflow-y-auto text-xs"></div>
+                </div>
+            </div>
+
+            <!-- Section 2: Compare vs Last Month -->
+            <div class="bg-ios-card border border-ios-border rounded-3xl p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-sm font-semibold text-white">Compare vs Last Month</h2>
+                    <span id="compareBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300">0%</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-ios-bg border border-slate-800 rounded-2xl p-3.5">
+                        <p class="text-[11px] text-slate-400">This Month</p>
+                        <p id="cmpThisMonth" class="text-lg font-bold text-white mt-1">฿0</p>
+                    </div>
+                    <div class="bg-ios-bg border border-slate-800 rounded-2xl p-3.5">
+                        <p class="text-[11px] text-slate-400">Last Month</p>
+                        <p id="cmpLastMonth" class="text-lg font-bold text-slate-400 mt-1">฿0</p>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <!-- Other General Installments -->
-                <div class="bg-ios-card border border-ios-border rounded-3xl p-5">
-                    <div class="mb-3.5">
-                        <h2 class="text-sm font-semibold text-white">💳 ผ่อนชำระอื่นๆ (บัตรเครดิต / ร้านค้าทั่วไป)</h2>
-                        <p class="text-xs text-slate-400">หากรายการไหนอยู่ใน ShopeePayLater กดปุ่ม "ย้ายเข้า SPayLater" ได้ทันที</p>
-                    </div>
+            <!-- Section 3: Export Data -->
+            <div class="bg-ios-card border border-ios-border rounded-3xl p-5">
+                <h2 class="text-sm font-semibold text-white mb-3">Export Data</h2>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <button onclick="downloadCSV('month')" class="bg-ios-bg hover:bg-slate-800 border border-slate-700 text-slate-200 font-semibold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                        <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/></svg>
+                        <span>This Month (CSV)</span>
+                    </button>
+                    <button onclick="downloadCSV('all')" class="bg-gradient-to-r from-sky-500 to-indigo-600 hover:opacity-95 text-white font-semibold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/></svg>
+                        <span>All Data (CSV)</span>
+                    </button>
+                </div>
+            </div>
 
-                    <form onsubmit="addInstallment(event)" class="bg-ios-bg border border-slate-800 rounded-2xl p-3 mb-4 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                        <input type="text" id="instName" placeholder="ชื่อสินค้า" required class="col-span-2 bg-ios-card border border-slate-700 rounded-xl px-3 py-2 text-white">
-                        <input type="number" step="0.01" id="instMonthly" placeholder="บาท/เดือน" required class="bg-ios-card border border-slate-700 rounded-xl px-3 py-2 text-white">
-                        <input type="number" id="instTotalMonths" placeholder="จำนวนงวด" required min="1" class="bg-ios-card border border-slate-700 rounded-xl px-3 py-2 text-white">
-                        <button type="submit" class="col-span-2 sm:col-span-4 bg-sky-600 active:bg-sky-500 text-white font-semibold rounded-xl py-2 transition">+ เพิ่มรายการผ่อนทั่วไป</button>
-                    </form>
-
-                    <div id="installmentList" class="space-y-2.5"></div>
+            <!-- Section 4: Monthly Slip & Attached Receipts -->
+            <div class="bg-ios-card border border-ios-border rounded-3xl p-5 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-semibold text-white">Monthly Slip</h2>
+                    <button onclick="downloadMonthlySlipPNG()" class="bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 font-semibold px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/></svg>
+                        <span>Download Slip</span>
+                    </button>
+                </div>
+                <div class="flex justify-center bg-ios-bg border border-slate-800 rounded-2xl p-3">
+                    <canvas id="monthlySlipCanvas" width="560" height="680" class="w-full max-w-[280px] h-auto rounded-xl shadow-lg"></canvas>
                 </div>
 
-                <!-- Subscriptions -->
-                <div class="bg-ios-card border border-ios-border rounded-3xl p-5">
-                    <div class="mb-3.5">
-                        <h2 class="text-sm font-semibold text-white">🔄 Subscription รายเดือน</h2>
-                    </div>
-
-                    <form onsubmit="addSubscription(event)" class="bg-ios-bg border border-slate-800 rounded-2xl p-3 mb-4 grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                        <input type="text" id="subName" placeholder="ชื่อบริการ" required class="col-span-2 sm:col-span-1 bg-ios-card border border-slate-700 rounded-xl px-3 py-2 text-white">
-                        <input type="number" step="0.01" id="subPrice" placeholder="ราคา (฿)" required class="bg-ios-card border border-slate-700 rounded-xl px-3 py-2 text-white">
-                        <input type="number" id="subBillingDay" placeholder="วันที่ตัดรอบ" min="1" max="31" required class="bg-ios-card border border-slate-700 rounded-xl px-3 py-2 text-white">
-                        <button type="submit" class="col-span-2 sm:col-span-3 bg-purple-600 active:bg-purple-500 text-white font-semibold rounded-xl py-2 transition">+ เพิ่ม Subscription</button>
-                    </form>
-
-                    <div id="subscriptionList" class="space-y-2.5"></div>
+                <div class="pt-3 border-t border-slate-800">
+                    <h3 class="text-xs font-semibold text-slate-400 mb-2.5">Attached Receipts</h3>
+                    <div id="slipGallery" class="grid grid-cols-3 gap-2.5"></div>
                 </div>
             </div>
         </section>
 
-        <!-- ==================== TAB 4: DEBTS & LENDING TRACKER ==================== -->
-        <section id="view-debts" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <div class="bg-ios-card border border-ios-border rounded-3xl p-5">
-                <h2 class="text-sm font-semibold text-sky-400 mb-1">📢 รอทวงเงิน (ให้ยืม / จ่ายแทน)</h2>
-                <p class="text-xs text-slate-400 mb-4">แตะ ✏️ เพื่อแก้ไขยอดหรือเลื่อนเวลานัด หรือกดรับเงินคืนเข้ากระเป๋า</p>
-                <div id="lendList" class="space-y-2.5"></div>
+        <!-- ==================== PAGE 3: ALLOCATE ==================== -->
+        <section id="view-allocate" class="hidden space-y-6 pb-4">
+            <!-- First Fold: Monthly Budget + Installments & Sub + Lent & Borrowed Fit Full Screen -->
+            <div class="first-fold-screen flex flex-col justify-between gap-3.5">
+
+                <!-- 1. Monthly Budget Summary (Expanded 2x2 Grid for Clarity) -->
+                <div class="bg-gradient-to-br from-slate-900 via-indigo-950/50 to-slate-900 border border-indigo-500/30 rounded-3xl p-5 flex-1 flex flex-col justify-between shadow-xl">
+                    <div class="flex justify-between items-center gap-2 mb-3">
+                        <h2 class="text-base font-bold text-white">Monthly Budget</h2>
+                        <div class="flex gap-1.5">
+                            <button onclick="autoSyncFixedBudgets()" class="text-xs bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-300 px-3 py-1.5 rounded-xl font-medium transition">
+                                Sync Fixed
+                            </button>
+                            <button onclick="copyPreviousMonthBudget()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-xl font-medium transition">
+                                Copy Prev
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 flex-1">
+                        <div class="bg-ios-bg/85 border border-slate-800 rounded-2xl p-3.5 flex flex-col justify-center">
+                            <p class="text-xs text-slate-400">Income</p>
+                            <p id="bgtTotalIncome" class="text-lg sm:text-xl font-bold text-emerald-400 mt-0.5 truncate">฿0</p>
+                        </div>
+                        <div class="bg-ios-bg/85 border border-slate-800 rounded-2xl p-3.5 flex flex-col justify-center">
+                            <p class="text-xs text-slate-400">Allocated</p>
+                            <p id="bgtTotalAllocated" class="text-lg sm:text-xl font-bold text-sky-400 mt-0.5 truncate">฿0</p>
+                        </div>
+                        <div class="bg-ios-bg/85 border border-slate-800 rounded-2xl p-3.5 flex flex-col justify-center">
+                            <p class="text-xs text-slate-400">Spent</p>
+                            <p id="bgtTotalUsed" class="text-lg sm:text-xl font-bold text-rose-400 mt-0.5 truncate">฿0</p>
+                        </div>
+                        <div class="bg-ios-bg/85 border border-slate-800 rounded-2xl p-3.5 flex flex-col justify-center">
+                            <p class="text-xs text-slate-400">Unallocated</p>
+                            <p id="bgtUnallocated" class="text-lg sm:text-xl font-bold text-amber-400 mt-0.5 truncate">฿0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Installments & Subscriptions Summary Card (Expanded) -->
+                <div class="bg-gradient-to-br from-orange-950/60 via-ios-card to-ios-card border border-orange-500/40 rounded-3xl p-5 relative flex-1 flex flex-col justify-between shadow-xl">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 class="text-base font-bold text-white">Installments & Sub</h2>
+                            <p class="text-xs text-orange-300/80 mt-0.5">Total Due This Month</p>
+                        </div>
+                        <button onclick="openFixedManagerModal()" class="w-9 h-9 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-200 flex items-center justify-center transition" title="Manage Installments & Subscriptions">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="flex items-end justify-between gap-3 mt-3">
+                        <p id="allocFixedTotal" class="text-3xl font-bold text-orange-400">฿0</p>
+                        <div class="grid grid-cols-3 gap-2 flex-1 max-w-[260px]">
+                            <div class="bg-ios-bg/80 border border-slate-800 rounded-xl p-2 text-center">
+                                <p class="text-[10px] text-slate-400">SPayLater</p>
+                                <p id="allocSpaySum" class="text-xs font-bold text-white mt-0.5">฿0</p>
+                            </div>
+                            <div class="bg-ios-bg/80 border border-slate-800 rounded-xl p-2 text-center">
+                                <p class="text-[10px] text-slate-400">Installment</p>
+                                <p id="allocInstSum" class="text-xs font-bold text-white mt-0.5">฿0</p>
+                            </div>
+                            <div class="bg-ios-bg/80 border border-slate-800 rounded-xl p-2 text-center">
+                                <p class="text-[10px] text-slate-400">Sub</p>
+                                <p id="allocSubSum" class="text-xs font-bold text-white mt-0.5">฿0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Lent & Borrowed Summary Card (Expanded) -->
+                <div class="bg-ios-card border border-ios-border rounded-3xl p-5 relative flex-1 flex flex-col justify-between shadow-xl">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-base font-bold text-white">Lent & Borrowed</h2>
+                        <button onclick="openDebtManagerModal()" class="w-9 h-9 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-200 flex items-center justify-center transition" title="Manage Lent & Borrowed">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mt-3 flex-1">
+                        <div class="bg-ios-bg border border-slate-800 rounded-2xl p-4 flex flex-col justify-center">
+                            <p class="text-xs text-slate-400">Lent (To Collect)</p>
+                            <p id="allocLentTotal" class="text-2xl font-bold text-sky-400 mt-1">฿0</p>
+                        </div>
+                        <div class="bg-ios-bg border border-slate-800 rounded-2xl p-4 flex flex-col justify-center">
+                            <p class="text-xs text-slate-400">Borrowed (To Pay)</p>
+                            <p id="allocBorrowTotal" class="text-2xl font-bold text-rose-400 mt-1">฿0</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
+            <!-- 4. Below the Fold: Scroll Down for 11 Budget Categories -->
             <div class="bg-ios-card border border-ios-border rounded-3xl p-5">
-                <h2 class="text-sm font-semibold text-rose-400 mb-1">⏳ ต้องคืนเงิน </h2>
-                <div id="borrowList" class="space-y-2.5"></div>
+                <h2 class="text-base font-bold text-white mb-3.5">Category Allocation</h2>
+                <div id="budgetPocketsGrid" class="space-y-2.5"></div>
             </div>
-        </section>
-
-        <!-- ==================== TAB 5: SLIP GALLERY ==================== -->
-        <section id="view-slips" class="hidden bg-ios-card border border-ios-border rounded-3xl p-5">
-            <div class="mb-4">
-                <h2 class="text-sm font-semibold text-white">🧾 คลังรูปสลิปโอนเงิน</h2>
-            </div>
-            <div id="slipGallery" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5"></div>
         </section>
 
     </main>
 
-    <!-- ==================== BOTTOM NAVIGATION BAR (iPhone 16 Pro Thumb-Friendly) ==================== -->
+    <!-- ==================== MINIMAL BOTTOM NAVIGATION BAR ==================== -->
     <nav class="glass-nav border-t border-slate-800/90 fixed bottom-0 inset-x-0 z-40">
-        <div class="max-w-xl mx-auto px-2 grid grid-cols-5 text-center">
-            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="py-2.5 flex flex-col items-center justify-center text-slate-400 nav-active relative">
-                <span class="text-lg leading-none">📊</span>
-                <span class="text-[10px] font-medium mt-1">หน้าหลัก</span>
+        <div class="max-w-lg mx-auto px-4 grid grid-cols-3 text-center">
+            <button onclick="switchTab('home')" id="tab-home" class="nav-btn nav-active py-2.5 flex flex-col items-center justify-center relative">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5v9a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 19.5v-9z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 21V13.5h6V21"/>
+                </svg>
+                <span class="text-[11px] font-medium mt-1">Home</span>
+                <span class="nav-dot w-5 h-0.5 bg-sky-400 rounded-full mt-0.5 opacity-0 scale-x-0 transition-all"></span>
             </button>
-            <button onclick="switchTab('budgets')" id="tab-budgets" class="py-2.5 flex flex-col items-center justify-center text-slate-400 relative">
-                <span class="text-lg leading-none">🎯</span>
-                <span class="text-[10px] font-medium mt-1">จัดงบ</span>
+            <button onclick="switchTab('summary')" id="tab-summary" class="nav-btn py-2.5 flex flex-col items-center justify-center relative">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
+                </svg>
+                <span class="text-[11px] font-medium mt-1">Summary</span>
+                <span class="nav-dot w-5 h-0.5 bg-sky-400 rounded-full mt-0.5 opacity-0 scale-x-0 transition-all"></span>
             </button>
-            <button onclick="switchTab('installments')" id="tab-installments" class="py-2.5 flex flex-col items-center justify-center text-slate-400 relative">
-                <span class="text-lg leading-none">🧡</span>
-                <span class="text-[10px] font-medium mt-1">ผ่อน & Sub</span>
-            </button>
-            <button onclick="switchTab('debts')" id="tab-debts" class="py-2.5 flex flex-col items-center justify-center text-slate-400 relative">
+            <button onclick="switchTab('allocate')" id="tab-allocate" class="nav-btn py-2.5 flex flex-col items-center justify-center relative">
                 <div class="relative">
-                    <span class="text-lg leading-none">🤝</span>
-                    <span id="debtBadge" class="hidden absolute -top-1.5 -right-3 bg-rose-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                    </svg>
+                    <span id="debtBadge" class="hidden absolute -top-1.5 -right-3 bg-rose-500 text-white text-[9px] px-1.5 rounded-full font-bold">0</span>
                 </div>
-                <span class="text-[10px] font-medium mt-1">ทวง/ยืม</span>
-            </button>
-            <button onclick="switchTab('slips')" id="tab-slips" class="py-2.5 flex flex-col items-center justify-center text-slate-400 relative">
-                <span class="text-lg leading-none">🧾</span>
-                <span class="text-[10px] font-medium mt-1">คลังสลิป</span>
+                <span class="text-[11px] font-medium mt-1">Allocate</span>
+                <span class="nav-dot w-5 h-0.5 bg-sky-400 rounded-full mt-0.5 opacity-0 scale-x-0 transition-all"></span>
             </button>
         </div>
     </nav>
 
-    <!-- ==================== MODAL 1: EDIT TRANSACTION (แก้ไขได้ทุกช่อง) ==================== -->
-    <div id="editTxModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4" onclick="closeEditTxModal()">
-        <div class="bg-ios-card border-t sm:border border-slate-700 rounded-t-3xl sm:rounded-3xl max-w-lg w-full p-5 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-base font-bold text-white">✏️ แก้ไขรายการที่บันทึก</h3>
-                <button onclick="closeEditTxModal()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+    <!-- ==================== MODAL 1: INSTALLMENTS & SUBSCRIPTIONS MANAGER ==================== -->
+    <div id="fixedManagerModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4" onclick="closeFixedManagerModal()">
+        <div class="bg-ios-card border-t sm:border border-slate-700 rounded-t-3xl sm:rounded-3xl max-w-lg w-full p-5 max-h-[88vh] overflow-y-auto space-y-4" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Installments & Subscriptions</h3>
+                <button onclick="closeFixedManagerModal()" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
             </div>
-            <form id="editTxForm" onsubmit="saveEditedTransaction(event)" class="space-y-3.5">
-                <input type="hidden" id="editTxId">
-                <div class="grid grid-cols-2 gap-2.5">
-                    <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">วัน-เวลา</label>
-                        <input type="datetime-local" id="editTxDate" required class="w-full bg-ios-bg border border-slate-700 rounded-xl px-3 py-2 text-white">
+
+            <!-- 1. SPayLater -->
+            <div class="bg-ios-bg border border-slate-800 rounded-2xl p-3.5 space-y-3">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-md bg-orange-500 text-white text-xs font-bold flex items-center justify-center">S</span>
+                        <h4 class="text-xs font-bold text-white uppercase">SPayLater</h4>
                     </div>
-                    <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">จำนวนเงิน (฿)</label>
-                        <input type="number" step="0.01" id="editTxAmount" required class="w-full bg-ios-bg border border-slate-700 rounded-xl px-3 py-2 text-white font-bold">
+                    <div class="flex items-center gap-2">
+                        <span id="spayModalMonthSum" class="text-xs font-bold text-orange-400">฿0</span>
+                        <button onclick="paySpayLaterMonth()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold px-2.5 py-1 rounded-lg transition">Pay Month</button>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-2.5">
+
+                <form id="spayForm" onsubmit="saveSpayItem(event)" class="grid grid-cols-12 gap-1.5 text-xs">
+                    <input type="text" id="spayName" placeholder="Item" required class="col-span-5 bg-ios-card border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white">
+                    <input type="number" step="0.01" id="spayMonthly" placeholder="฿/Mo" required class="col-span-3 bg-ios-card border border-slate-700 rounded-xl px-2 py-1.5 text-xs text-white">
+                    <input type="number" id="spayTotalMonths" placeholder="Mos" required min="1" class="col-span-2 bg-ios-card border border-slate-700 rounded-xl px-2 py-1.5 text-xs text-white">
+                    <button type="submit" class="col-span-2 bg-orange-500 hover:bg-orange-400 text-white font-semibold rounded-xl py-1.5 text-xs">+</button>
+                </form>
+
+                <div id="spayModalList" class="space-y-1.5"></div>
+            </div>
+
+            <!-- 2. Credit Card / Other Installments -->
+            <div class="bg-ios-bg border border-slate-800 rounded-2xl p-3.5 space-y-3">
+                <h4 class="text-xs font-bold text-white uppercase">Credit Card / Other</h4>
+                <form onsubmit="addInstallment(event)" class="grid grid-cols-12 gap-1.5 text-xs">
+                    <input type="text" id="instName" placeholder="Item" required class="col-span-5 bg-ios-card border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white">
+                    <input type="number" step="0.01" id="instMonthly" placeholder="฿/Mo" required class="col-span-3 bg-ios-card border border-slate-700 rounded-xl px-2 py-1.5 text-xs text-white">
+                    <input type="number" id="instTotalMonths" placeholder="Mos" required min="1" class="col-span-2 bg-ios-card border border-slate-700 rounded-xl px-2 py-1.5 text-xs text-white">
+                    <button type="submit" class="col-span-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-xl py-1.5 text-xs">+</button>
+                </form>
+                <div id="installmentList" class="space-y-1.5"></div>
+            </div>
+
+            <!-- 3. Subscriptions -->
+            <div class="bg-ios-bg border border-slate-800 rounded-2xl p-3.5 space-y-3">
+                <h4 class="text-xs font-bold text-white uppercase">Subscriptions</h4>
+                <form onsubmit="addSubscription(event)" class="grid grid-cols-12 gap-1.5 text-xs">
+                    <input type="text" id="subName" placeholder="Service" required class="col-span-5 bg-ios-card border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white">
+                    <input type="number" step="0.01" id="subPrice" placeholder="฿" required class="col-span-3 bg-ios-card border border-slate-700 rounded-xl px-2 py-1.5 text-xs text-white">
+                    <input type="number" id="subBillingDay" placeholder="Day" min="1" max="31" required class="col-span-2 bg-ios-card border border-slate-700 rounded-xl px-2 py-1.5 text-xs text-white">
+                    <button type="submit" class="col-span-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-xl py-1.5 text-xs">+</button>
+                </form>
+                <div id="subscriptionList" class="space-y-1.5"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL 2: LENT & BORROWED MANAGER ==================== -->
+    <div id="debtManagerModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4" onclick="closeDebtManagerModal()">
+        <div class="bg-ios-card border-t sm:border border-slate-700 rounded-t-3xl sm:rounded-3xl max-w-lg w-full p-5 max-h-[85vh] overflow-y-auto space-y-4" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Lent & Borrowed</h3>
+                <button onclick="closeDebtManagerModal()" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-sky-400 uppercase mb-2">Lent (To Collect)</h4>
+                <div id="lendList" class="space-y-2"></div>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-rose-400 uppercase mb-2">Borrowed (To Pay)</h4>
+                <div id="borrowList" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL 3: EDIT TRANSACTION ==================== -->
+    <div id="editTxModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4" onclick="closeEditTxModal()">
+        <div class="bg-ios-card border-t sm:border border-slate-700 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-5 space-y-3.5" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Edit Entry</h3>
+                <button onclick="closeEditTxModal()" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+            </div>
+            <form id="editTxForm" onsubmit="saveEditedTransaction(event)" class="space-y-3">
+                <input type="hidden" id="editTxId">
+                <div class="grid grid-cols-12 gap-2">
+                    <div class="col-span-7">
+                        <label class="block text-[10px] text-slate-400 mb-1">Date & Time</label>
+                        <input type="datetime-local" id="editTxDate" required class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white">
+                    </div>
+                    <div class="col-span-5">
+                        <label class="block text-[10px] text-slate-400 mb-1">Amount (฿)</label>
+                        <input type="number" step="0.01" id="editTxAmount" required class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-bold text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">ประเภทหลัก</label>
-                        <select id="editTxType" onchange="updateCategoryOptions('editTxType', 'editTxCategory', 'editDebtFields', 'editTxPerson', 'editTxDueDate')" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-3 py-2 text-white">
-                            <option value="expense_var">🍜 รายจ่ายผันแปร</option>
-                            <option value="expense_free">🎮 เงินใช้อิสระ</option>
-                            <option value="expense_fix">🏠 รายจ่ายประจำ</option>
-                            <option value="saving">🐷 เงินออม</option>
-                            <option value="lend">💸 ให้ยืม / จ่ายแทน</option>
-                            <option value="borrow">🤝 ยืมเงิน</option>
-                            <option value="income">💰 รายรับ</option>
+                        <label class="block text-[10px] text-slate-400 mb-1">Type</label>
+                        <select id="editTxType" onchange="updateCategoryOptions('editTxType', 'editTxCategory', 'editDebtFields', 'editTxPerson', 'editTxDueDate')" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white">
+                            <option value="expense">Expense</option>
+                            <option value="saving">Savings</option>
+                            <option value="lend">Lend</option>
+                            <option value="borrow">Borrow</option>
+                            <option value="income">Income</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">หมวดหมู่ย่อย</label>
-                        <select id="editTxCategory" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-3 py-2 text-white"></select>
+                        <label class="block text-[10px] text-slate-400 mb-1">Category</label>
+                        <select id="editTxCategory" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white"></select>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-[11px] text-slate-400 mb-1">ชื่อรายการ</label>
-                    <input type="text" id="editTxTitle" required class="w-full bg-ios-bg border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    <label class="block text-[10px] text-slate-400 mb-1">Note</label>
+                    <input type="text" id="editTxTitle" required class="w-full bg-ios-bg border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
                 </div>
-                <div id="editDebtFields" class="hidden bg-indigo-950/40 border border-indigo-500/40 rounded-2xl p-3 space-y-2.5">
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <div>
-                            <label class="block text-[11px] text-slate-300 mb-1">ชื่อคนยืม</label>
-                            <input type="text" id="editTxPerson" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-1.5 text-white">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] text-slate-300 mb-1">วัน-เวลานัดคืน</label>
-                            <input type="datetime-local" id="editTxDueDate" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-1.5 text-white">
-                        </div>
+                <div id="editDebtFields" class="hidden bg-indigo-950/40 border border-indigo-500/40 rounded-2xl p-3 space-y-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="editTxPerson" placeholder="Person" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white">
+                        <input type="datetime-local" id="editTxDueDate" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white">
                     </div>
-                    <label class="flex items-center gap-2 text-xs text-slate-300 pt-1 cursor-pointer">
-                        <input type="checkbox" id="editTxSettled" class="rounded bg-ios-bg border-slate-600 text-sky-500">
-                        <span>เคลียร์ยอด</span>
+                    <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer pt-1">
+                        <input type="checkbox" id="editTxSettled">
+                        <span>Settled</span>
                     </label>
                 </div>
-                <div>
-                    <label class="block text-[11px] text-slate-400 mb-1">เปลี่ยนรูปสลิป (ถ้ามี)</label>
-                    <input type="file" id="editTxSlip" accept="image/*" onchange="previewSlip(event, 'editSlipPreviewBox', 'editSlipPreviewImg', true)" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:bg-slate-800 file:text-sky-300">
-                    <div id="editSlipPreviewBox" class="hidden mt-2 relative w-24 h-24 rounded-xl overflow-hidden border border-slate-600">
-                        <img id="editSlipPreviewImg" class="w-full h-full object-cover">
-                        <button type="button" onclick="clearSlipPreview(true)" class="absolute top-1 right-1 bg-rose-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">×</button>
-                    </div>
-                </div>
                 <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="closeEditTxModal()" class="w-1/3 bg-slate-800 text-slate-300 font-medium py-2.5 rounded-2xl">ยกเลิก</button>
-                    <button type="submit" class="w-2/3 bg-sky-500 hover:bg-sky-400 text-white font-semibold py-2.5 rounded-2xl">💾 บันทึกการแก้ไข</button>
+                    <button type="button" onclick="closeEditTxModal()" class="w-1/3 bg-slate-800 text-slate-300 font-medium py-2.5 rounded-xl text-xs">Cancel</button>
+                    <button type="submit" class="w-2/3 bg-sky-500 hover:bg-sky-400 text-white font-semibold py-2.5 rounded-xl text-xs">Save</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ==================== MODAL 2: SHOPEEPAYLATER INSIDE MANAGER ==================== -->
-    <div id="spayModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4" onclick="closeSpayModal()">
-        <div class="bg-ios-card border-t sm:border border-orange-500/50 rounded-t-3xl sm:rounded-3xl max-w-2xl w-full p-5 max-h-[92vh] overflow-y-auto" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center mb-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 to-rose-600 flex items-center justify-center font-bold text-white">S</div>
-                    <div>
-                        <h3 class="text-base font-bold text-white">ตั้งค่าไส้ใน ShopeePayLater</h3>
-                        <p class="text-[11px] text-slate-400">จัดการรายการผ่อนและปรับยอดที่ต้องจ่ายในแต่ละเดือน</p>
-                    </div>
-                </div>
-                <button onclick="closeSpayModal()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
-            </div>
-
-            <!-- Month Selector inside SPayLater -->
-            <div class="bg-ios-bg border border-slate-800 rounded-2xl p-3.5 mb-4 flex flex-wrap justify-between items-center gap-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs text-slate-300">ดู/ตั้งค่าบิลของเดือน:</span>
-                    <input type="month" id="spayModalMonth" onchange="renderSpayModalContent()" class="bg-ios-card border border-orange-500/40 rounded-xl px-2.5 py-1 text-xs text-orange-300 font-semibold">
-                </div>
-                <div class="text-right">
-                    <span class="text-xs text-slate-400">ยอดรวมบิลเดือนนี้: </span>
-                    <span id="spayModalMonthSum" class="text-base font-bold text-orange-400">฿0</span>
-                </div>
-            </div>
-
-            <!-- Add / Edit SPayLater Item Form -->
-            <form id="spayForm" onsubmit="saveSpayItem(event)" class="bg-ios-bg/80 border border-slate-800 rounded-2xl p-3.5 mb-4 space-y-2.5">
-                <div class="flex justify-between items-center">
-                    <span id="spayFormTitle" class="text-xs font-semibold text-orange-300">+ เพิ่มรายการผ่อนใน ShopeePayLater</span>
-                    <button type="button" id="spayCancelEditBtn" onclick="resetSpayForm()" class="hidden text-[11px] text-slate-400 underline">ยกเลิกการแก้ไข</button>
-                </div>
-                <input type="hidden" id="spayEditId">
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <input type="text" id="spayName" placeholder="ชื่อสินค้า (เช่น Sony XM6)" required class="col-span-2 bg-ios-card border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                    <input type="number" step="0.01" id="spayMonthly" placeholder="ยอด/เดือน (฿)" required class="bg-ios-card border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                    <input type="number" id="spayTotalMonths" placeholder="จำนวนเดือน (เช่น 3, 10)" required min="1" class="bg-ios-card border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 items-center">
-                    <div>
-                        <label class="block text-[10px] text-slate-400 mb-0.5">เดือนที่เริ่มจ่ายงวดแรก</label>
-                        <input type="month" id="spayStartMonth" required class="w-full bg-ios-card border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-slate-400 mb-0.5">จ่ายไปแล้วกี่งวด</label>
-                        <input type="number" id="spayPaidMonths" value="0" min="0" required class="w-full bg-ios-card border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white">
-                    </div>
-                    <button type="submit" id="spaySubmitBtn" class="col-span-2 sm:col-span-1 bg-orange-500 hover:bg-orange-400 text-white font-semibold rounded-xl py-2.5 text-xs mt-3 sm:mt-4 transition">
-                        บันทึกเข้า SPayLater
-                    </button>
-                </div>
-            </form>
-
-            <!-- Active SPayLater Breakdown List for Selected Month -->
-            <div id="spayModalList" class="space-y-2.5"></div>
-        </div>
-    </div>
-
-    <!-- ==================== MODAL 3: EDIT GENERAL INSTALLMENT / SUBSCRIPTION ==================== -->
-    <div id="editItemModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4" onclick="closeEditItemModal()">
-        <div class="bg-ios-card border border-slate-700 rounded-3xl max-w-md w-full p-5" onclick="event.stopPropagation()">
-            <h3 id="editItemModalTitle" class="text-base font-bold text-white mb-3">✏️ แก้ไขข้อมูล</h3>
-            <form id="editItemForm" onsubmit="saveEditedItem(event)" class="space-y-3">
-                <input type="hidden" id="editItemMode">
-                <input type="hidden" id="editItemId">
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">ชื่อรายการ</label>
-                    <input type="text" id="editItemName" required class="w-full bg-ios-bg border border-slate-700 rounded-xl px-3 py-2 text-white">
-                </div>
-                <div class="grid grid-cols-2 gap-2.5">
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">ยอดต่อเดือน (฿)</label>
-                        <input type="number" step="0.01" id="editItemPrice" required class="w-full bg-ios-bg border border-slate-700 rounded-xl px-3 py-2 text-white">
-                    </div>
-                    <div id="editItemExtraBox1">
-                        <label id="editItemExtraLabel1" class="block text-xs text-slate-400 mb-1">จำนวนงวดทั้งหมด</label>
-                        <input type="number" id="editItemExtra1" required min="1" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-3 py-2 text-white">
-                    </div>
-                </div>
-                <div id="editItemExtraBox2">
-                    <label class="block text-xs text-slate-400 mb-1">จ่ายไปแล้วกี่งวด</label>
-                    <input type="number" id="editItemExtra2" min="0" class="w-full bg-ios-bg border border-slate-700 rounded-xl px-3 py-2 text-white">
-                </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="closeEditItemModal()" class="w-1/3 bg-slate-800 text-slate-300 py-2.5 rounded-2xl text-xs">ยกเลิก</button>
-                    <button type="submit" class="w-2/3 bg-sky-500 text-white font-semibold py-2.5 rounded-2xl text-xs">💾 บันทึก</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ==================== MODAL 4: SLIP LIGHTBOX ==================== -->
+    <!-- ==================== MODAL 4: SLIP VIEWER ==================== -->
     <div id="slipModal" class="fixed inset-0 bg-black/85 z-50 hidden items-center justify-center p-4" onclick="closeSlipModal()">
-        <div class="bg-ios-card border border-slate-700 rounded-3xl max-w-md w-full p-4" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center mb-3">
-                <h3 id="modalTitle" class="text-sm font-semibold text-white truncate pr-4">สลิปโอนเงิน</h3>
-                <button onclick="closeSlipModal()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+        <div class="bg-ios-card border border-slate-700 rounded-3xl max-w-sm w-full p-4" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-2.5">
+                <h3 id="modalTitle" class="text-xs font-bold text-white truncate pr-4">Slip</h3>
+                <button onclick="closeSlipModal()" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
             </div>
-            <div class="rounded-2xl overflow-hidden bg-black max-h-[65vh] flex items-center justify-center">
-                <img id="modalImg" class="max-h-[65vh] w-auto object-contain">
+            <div class="rounded-2xl overflow-hidden bg-black max-h-[60vh] flex items-center justify-center">
+                <img id="modalImg" class="max-h-[60vh] w-auto object-contain">
             </div>
             <div class="mt-3 flex justify-between items-center">
-                <span id="modalMeta" class="text-xs text-slate-400"></span>
-                <a id="modalDownload" download="slip.jpg" class="bg-sky-600 text-white text-xs px-3.5 py-2 rounded-xl font-medium">⬇️ บันทึกรูป</a>
+                <span id="modalMeta" class="text-[11px] text-slate-400"></span>
+                <a id="modalDownload" download="slip.jpg" class="bg-sky-600 text-white text-xs px-3 py-1.5 rounded-xl font-medium">Download</a>
             </div>
         </div>
     </div>
 
     <script>
-        // --- หมวดหมู่ย่อย (จับคู่กับระบบตัดงบอัตโนมัติ) ---
+        // --- 11 Standard Budget Categories ---
+        const BUDGET_CATEGORIES = [
+            { cat: 'Food', color: '#f43f5e', defaultBgt: 3500 },
+            { cat: 'Transport', color: '#fb923c', defaultBgt: 800 },
+            { cat: 'Laundry & Haircut', color: '#38bdf8', defaultBgt: 600 },
+            { cat: 'Supplements', color: '#2dd4bf', defaultBgt: 500 },
+            { cat: 'Education', color: '#60a5fa', defaultBgt: 300 },
+            { cat: 'Installments', color: '#f97316', defaultBgt: 2225 },
+            { cat: 'Rent & Utilities', color: '#a855f7', defaultBgt: 0 },
+            { cat: 'Entertainment', color: '#ec4899', defaultBgt: 500 },
+            { cat: 'Shopping', color: '#c084fc', defaultBgt: 500 },
+            { cat: 'Cafe & Social', color: '#fb7185', defaultBgt: 400 },
+            { cat: 'Emergency Savings', color: '#fbbf24', defaultBgt: 5000 }
+        ];
+
         const CATEGORIES = {
-            expense_var: [
-                '🍜 ค่าอาหาร',
-                '🚌 ค่าเดินทาง',
-                '🧺 ซักผ้า',
-                '💇‍♂️ ตัดผม',
-                '💊 อาหารเสริม',
-                '📚 การเรียน',
-                '📦 อื่นๆ'
-            ],
-            expense_free: [
-                '🎮 บันเทิง',
-                '🛍️ ช้อปปิ้ง',
-                '☕ คาเฟ่ / สังสรรค์',
-                '🎁 เปย์ตัวเอง'
-            ],
-            expense_fix: [
-                '💳 ผ่อนชำระสินค้า',
-                '🔄 Subscription',
-                '🏠 ค่าหอ / ค่าน้ำ-ไฟ / เน็ต',
+            expense: [
+                'Food',
+                'Transport',
+                'Laundry & Haircut',
+                'Supplements',
+                'Education',
+                'Installments',
+                'Rent & Utilities',
+                'Entertainment',
+                'Shopping',
+                'Cafe & Social'
             ],
             saving: [
-                '🏦 เงินออมฉุกเฉิน',
-                '📈 ลงทุน',
-                '🎯 ออมเพื่อเป้าหมาย'
+                'Emergency Savings'
             ],
             lend: [
-                '🤝 จ่ายแทน',
-                '💸 ให้ยืมเงินสด'
+                'Lend Cash',
+                'Paid on Behalf'
             ],
             borrow: [
-                '🙌 ยืมเงิน',
-                '⏳ ติดค่าของรอโอนคืน'
+                'Personal Loan',
+                'Pending Payback'
             ],
             income: [
-                '💼 เงินรายเดือน',
-                '💻 รายได้พิเศษ',
-                '🔄 รับเงินคืนจากเพื่อน',
-                '🎁 รายรับอื่นๆ'
+                'Monthly Allowance',
+                'Side Income',
+                'Debt Repayment',
+                'Other Income'
             ]
         };
 
-        // หมวดหมู่ที่ใช้ตั้งงบประมาณประจำเดือน (Budget Pockets)
-        const BUDGET_CATEGORIES = [
-            { cat: '🍜 ค่าอาหาร', group: 'รายจ่ายผันแปร', color: '#f43f5e', defaultBgt: 3500 },
-            { cat: '🚌 ค่าเดินทาง', group: 'รายจ่ายผันแปร', color: '#fb923c', defaultBgt: 800 },
-            { cat: '🧺 ซักผ้า', group: 'รายจ่ายผันแปร', color: '#38bdf8', defaultBgt: 300 },
-            { cat: '💇‍♂️ ตัดผม', group: 'รายจ่ายผันแปร', color: '#818cf8', defaultBgt: 300 },
-            { cat: '💊 อาหารเสริม', group: 'รายจ่ายผันแปร', color: '#2dd4bf', defaultBgt: 500 },
-            { cat: '📚 การเรียน', group: 'รายจ่ายผันแปร', color: '#60a5fa', defaultBgt: 300 },
-            { cat: '💳 ผ่อนชำระสินค้า', group: 'รายจ่ายประจำ', color: '#f97316', defaultBgt: 1788 },
-            { cat: '🔄 Subscription', group: 'รายจ่ายประจำ', color: '#a855f7', defaultBgt: 437 },
-            { cat: '🏠 ค่าหอ / ค่าน้ำ-ไฟ / เน็ต', group: 'รายจ่ายประจำ', color: '#c084fc', defaultBgt: 0 },
-            { cat: '🎮 บันเทิง', group: 'เงินใช้อิสระ', color: '#ec4899', defaultBgt: 500 },
-            { cat: '🛍️ ช้อปปิ้ง', group: 'เงินใช้อิสระ', color: '#f472b6', defaultBgt: 500 },
-            { cat: '☕ คาเฟ่ / สังสรรค์', group: 'เงินใช้อิสระ', color: '#fb7185', defaultBgt: 400 },
-            { cat: '🏦 เงินออมฉุกเฉิน', group: 'เงินออม', color: '#fbbf24', defaultBgt: 5000 }
-        ];
-
-        const TYPE_LABELS = {
-            expense_var: '🍜 รายจ่ายผันแปร',
-            expense_free: '🎮 เงินใช้อิสระ',
-            expense_fix: '🏠 รายจ่ายประจำ',
-            saving: '🐷 เงินออม',
-            lend: '💸 ให้ยืม',
-            borrow: '🤝 ยืมเงิน',
-            income: '💰 รายรับ'
+        const LEGACY_CAT_MAP = {
+            '🍜 ค่าอาหาร': 'Food',
+            '🍜 ค่าอาหาร / เครื่องดื่ม': 'Food',
+            '🚌 ค่าเดินทาง': 'Transport',
+            '🚌 ค่าเดินทาง / น้ำมัน': 'Transport',
+            '🧺 ซักผ้า': 'Laundry & Haircut',
+            '🧺 ซักผ้า / ของใช้เข้าห้อง': 'Laundry & Haircut',
+            '💇‍♂️ ตัดผม': 'Laundry & Haircut',
+            '💇‍♂️ ตัดผม / ดูแลตัวเอง': 'Laundry & Haircut',
+            '💊 อาหารเสริม': 'Supplements',
+            '📚 การเรียน': 'Education',
+            '💳 ผ่อนชำระสินค้า': 'Installments',
+            '🔄 Subscription': 'Installments',
+            '🔄 Subscription รายเดือน': 'Installments',
+            '🏠 ค่าหอ / ค่าน้ำ-ไฟ / เน็ต': 'Rent & Utilities',
+            '🎮 บันเทิง': 'Entertainment',
+            '🛍️ ช้อปปิ้ง': 'Shopping',
+            '🎁 เปย์ตัวเอง': 'Shopping',
+            '☕ คาเฟ่ / สังสรรค์': 'Cafe & Social',
+            '🏦 เงินออมฉุกเฉิน': 'Emergency Savings',
+            '📈 ลงทุน': 'Emergency Savings',
+            '🎯 ออมเพื่อเป้าหมาย': 'Emergency Savings',
+            '🤝 จ่ายแทน': 'Paid on Behalf',
+            '🤝 จ่ายแทนเพื่อน (ค่าข้าว/ของ)': 'Paid on Behalf',
+            '💸 ให้ยืมเงินสด': 'Lend Cash',
+            '🙌 ยืมเงิน': 'Personal Loan',
+            '🙌 ยืมเงินเพื่อน/ครอบครัว': 'Personal Loan',
+            '💼 เงินรายเดือน': 'Monthly Allowance',
+            '💼 เงินรายเดือน / ทางบ้านให้': 'Monthly Allowance',
+            '🔄 รับเงินคืนจากเพื่อน': 'Debt Repayment'
         };
 
         let db;
@@ -665,7 +710,7 @@
             budgets: {}
         };
         let currentSlipBase64 = null;
-        let editSlipBase64 = null;
+        let selectedPieCategory = null;
 
         // --- IndexedDB ---
         function initDB() {
@@ -692,7 +737,7 @@
                         state = req.result.data;
                         migrateAndEnsureStructure();
                     } else {
-                        seedFromUserBackup();
+                        seedInitialData();
                     }
                     resolve();
                 };
@@ -704,133 +749,30 @@
             tx.objectStore('appState').put({ id: 'main', data: state });
         }
 
-        // โหลดข้อมูลตั้งต้นจากไฟล์ fintrack_backup_2026-10-14.json ของผู้ใช้โดยตรง
-        function seedFromUserBackup() {
+        function seedInitialData() {
             state = {
                 transactions: [
-                    {
-                        id: "tx_1791988419934",
-                        date: "2026-10-14T21:22",
-                        amount: 60,
-                        type: "lend",
-                        category: "💸 ให้ยืมเงินสด",
-                        title: "ค่าเหรียญ",
-                        person: "แม่",
-                        dueDate: "2026-10-15T16:00",
-                        settled: false,
-                        slip: null
-                    },
-                    {
-                        id: "tx_1791988376972",
-                        date: "2026-10-14T21:22",
-                        amount: 4265.42,
-                        type: "income",
-                        category: "💼 เงินรายเดือน / ทางบ้านให้",
-                        title: "ยกยอด",
-                        person: null,
-                        dueDate: null,
-                        settled: false,
-                        slip: null
-                    },
-                    {
-                        id: "tx_1791988262453",
-                        date: "2026-10-14T21:22",
-                        amount: 5000,
-                        type: "saving",
-                        category: "🏦 เงินออมฉุกเฉิน",
-                        title: "ออมรายเดือน",
-                        person: null,
-                        dueDate: null,
-                        settled: false,
-                        slip: null
-                    },
-                    {
-                        id: "tx_1791987951181",
-                        date: "2026-10-14T21:22",
-                        amount: 1500,
-                        type: "borrow",
-                        category: "🙌 ยืมเงินเพื่อน/ครอบครัว",
-                        title: "ค่าข้าว",
-                        person: "โจนาธาน",
-                        dueDate: "2026-11-01T10:00",
-                        settled: false,
-                        slip: null
-                    },
-                    {
-                        id: "tx_1791987892518",
-                        date: "2026-10-14T21:22",
-                        amount: 87,
-                        type: "lend",
-                        category: "🤝 จ่ายแทนเพื่อน (ค่าข้าว/ของ)",
-                        title: "ขนมปัง Yamazaki",
-                        person: "แม่",
-                        dueDate: "2026-10-15T16:00",
-                        settled: false,
-                        slip: null
-                    },
-                    {
-                        id: "tx_1791987865535",
-                        date: "2026-10-14T21:22",
-                        amount: 45,
-                        type: "lend",
-                        category: "🤝 จ่ายแทนเพื่อน (ค่าข้าว/ของ)",
-                        title: "โกโก้เย็น",
-                        person: "แม่",
-                        dueDate: "2026-10-15T16:00",
-                        settled: false,
-                        slip: null
-                    },
-                    {
-                        id: "tx_1791987844370",
-                        date: "2026-10-14T21:22",
-                        amount: 130,
-                        type: "lend",
-                        category: "🤝 จ่ายแทนเพื่อน (ค่าข้าว/ของ)",
-                        title: "ข้าวมันไก่ทอด",
-                        person: "แม่",
-                        dueDate: "2026-10-15T16:00",
-                        settled: false,
-                        slip: null
-                    }
+                    { id: "tx_1", date: "2026-10-14T21:22", amount: 60, type: "lend", category: "Lend Cash", title: "ค่าเหรียญ", person: "แม่", dueDate: "2026-10-15T16:00", settled: false, slip: null },
+                    { id: "tx_2", date: "2026-10-14T21:22", amount: 4265.42, type: "income", category: "Monthly Allowance", title: "ยกยอด", person: null, dueDate: null, settled: false, slip: null },
+                    { id: "tx_3", date: "2026-10-14T21:22", amount: 5000, type: "saving", category: "Emergency Savings", title: "ออมรายเดือน", person: null, dueDate: null, settled: false, slip: null },
+                    { id: "tx_4", date: "2026-10-14T21:22", amount: 1500, type: "borrow", category: "Personal Loan", title: "ค่าข้าว", person: "โจนาธาน", dueDate: "2026-11-01T10:00", settled: false, slip: null },
+                    { id: "tx_5", date: "2026-10-14T21:22", amount: 87, type: "lend", category: "Paid on Behalf", title: "ขนมปัง Yamazaki", person: "แม่", dueDate: "2026-10-15T16:00", settled: false, slip: null },
+                    { id: "tx_6", date: "2026-10-14T21:22", amount: 45, type: "lend", category: "Paid on Behalf", title: "โกโก้เย็น", person: "แม่", dueDate: "2026-10-15T16:00", settled: false, slip: null },
+                    { id: "tx_7", date: "2026-10-14T21:22", amount: 130, type: "lend", category: "Paid on Behalf", title: "ข้าวมันไก่ทอด", person: "แม่", dueDate: "2026-10-15T16:00", settled: false, slip: null }
                 ],
                 installments: [],
                 spaylater: [
-                    {
-                        id: "spay_1791987973441",
-                        name: "Sony WH-1000XM6",
-                        monthly: 1099,
-                        totalMonths: 10,
-                        paidMonths: 0,
-                        startMonth: "2026-10",
-                        monthlyOverrides: {}
-                    },
-                    {
-                        id: "spay_1791988015599",
-                        name: "Amazfit Bip Max/ Bip 6",
-                        monthly: 689,
-                        totalMonths: 3,
-                        paidMonths: 0,
-                        startMonth: "2026-10",
-                        monthlyOverrides: {}
-                    }
+                    { id: "spay_1", name: "Sony WH-1000XM6", monthly: 1099, totalMonths: 10, paidMonths: 0, startMonth: "2026-10", monthlyOverrides: {} },
+                    { id: "spay_2", name: "Amazfit Bip 6", monthly: 689, totalMonths: 3, paidMonths: 0, startMonth: "2026-10", monthlyOverrides: {} }
                 ],
                 subscriptions: [
-                    { id: "sub_1791988170340", name: "MAKE Max Monthly", price: 79, billingDay: 31 },
-                    { id: "sub_1791988183761", name: "Google Pro", price: 279, billingDay: 20 },
-                    { id: "sub_1791988471268", name: "Apple Music", price: 79, billingDay: 28 }
+                    { id: "sub_1", name: "MAKE Max", price: 79, billingDay: 31 },
+                    { id: "sub_2", name: "Google Pro", price: 279, billingDay: 20 },
+                    { id: "sub_3", name: "Apple Music", price: 79, billingDay: 28 }
                 ],
-                budgets: {
-                    "2026-10": {
-                        "🍜 ค่าอาหาร / เครื่องดื่ม": 3000,
-                        "🚌 ค่าเดินทาง / น้ำมัน": 600,
-                        "🧺 ซักผ้า / ของใช้เข้าห้อง": 300,
-                        "💇‍♂️ ตัดผม / ดูแลตัวเอง": 300,
-                        "💳 ผ่อนชำระสินค้า": 1788,
-                        "🔄 Subscription รายเดือน": 437,
-                        "🏦 เงินออมฉุกเฉิน": 5000
-                    }
-                }
+                budgets: {}
             };
+            ensureMonthBudgetExists('2026-10');
             saveState();
         }
 
@@ -840,19 +782,27 @@
             if (!state.installments) state.installments = [];
             if (!state.subscriptions) state.subscriptions = [];
 
-            // หากมีรายการผ่อนเดิมในไฟล์ Backup (เช่น Sony WH-1000XM6, Amazfit) และ spaylater ยังว่าง ให้ย้ายเข้า SPayLater อัตโนมัติ
-            if (state.spaylater.length === 0 && state.installments.length > 0) {
-                state.spaylater = state.installments.map(inst => ({
-                    id: 'spay_' + inst.id,
-                    name: inst.name,
-                    monthly: inst.monthly,
-                    totalMonths: inst.totalMonths,
-                    paidMonths: inst.paidMonths || 0,
-                    startMonth: inst.startMonth || '2026-10',
-                    monthlyOverrides: inst.monthlyOverrides || {}
-                }));
-                state.installments = [];
-            }
+            state.transactions.forEach(t => {
+                if (['expense_var', 'expense_free', 'expense_fix'].includes(t.type)) {
+                    t.type = 'expense';
+                }
+                if (LEGACY_CAT_MAP[t.category]) {
+                    t.category = LEGACY_CAT_MAP[t.category];
+                }
+            });
+
+            Object.keys(state.budgets).forEach(ym => {
+                const oldMap = state.budgets[ym];
+                const newMap = {};
+                BUDGET_CATEGORIES.forEach(b => { newMap[b.cat] = b.defaultBgt; });
+                Object.entries(oldMap).forEach(([k, v]) => {
+                    const mapped = LEGACY_CAT_MAP[k] || k;
+                    if (newMap[mapped] !== undefined) {
+                        newMap[mapped] = parseFloat(v) || 0;
+                    }
+                });
+                state.budgets[ym] = newMap;
+            });
 
             const ym = document.getElementById('monthFilter')?.value || '2026-10';
             ensureMonthBudgetExists(ym);
@@ -868,21 +818,18 @@
             }
         }
 
-        // --- Date & Category Helpers ---
+        // --- Date & Form Setup ---
         function setDefaultDates() {
             const now = new Date();
-            const tzOffset = now.getTimezoneOffset() * 60000;
-            const localISO = new Date(now - tzOffset).toISOString().slice(0, 16);
+            const localISO = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
             document.getElementById('txDate').value = localISO;
             document.getElementById('monthFilter').value = localISO.slice(0, 7);
-            document.getElementById('spayStartMonth').value = localISO.slice(0, 7);
-            document.getElementById('spayModalMonth').value = localISO.slice(0, 7);
         }
 
         function onMonthChange() {
             const ym = document.getElementById('monthFilter').value;
             ensureMonthBudgetExists(ym);
-            document.getElementById('spayModalMonth').value = ym;
+            selectedPieCategory = null;
             renderAll();
         }
 
@@ -908,33 +855,27 @@
             const ym = document.getElementById('monthFilter').value;
             const cat = document.getElementById('txCategory').value;
             const type = document.getElementById('txType').value;
-            const hintBox = document.getElementById('budgetHintBox');
+            const valEl = document.getElementById('budgetHintValue');
 
             if (['income', 'lend', 'borrow'].includes(type)) {
-                hintBox.classList.add('hidden');
+                valEl.textContent = type.toUpperCase();
+                valEl.className = 'text-[11px] font-semibold text-slate-400 bg-slate-900/90 border border-slate-800 px-2.5 py-1 rounded-xl';
                 return;
             }
-            hintBox.classList.remove('hidden');
             ensureMonthBudgetExists(ym);
             const allocated = state.budgets[ym]?.[cat] || 0;
             const spent = state.transactions
                 .filter(t => t.date.startsWith(ym) && t.category === cat)
                 .reduce((sum, t) => sum + t.amount, 0);
             const rem = allocated - spent;
-
-            document.getElementById('budgetHintLabel').textContent = `งบคงเหลือ [${cat}]:`;
-            const valEl = document.getElementById('budgetHintValue');
-            if (allocated === 0) {
-                valEl.textContent = `ยังไม่ได้ตั้งงบ (ใช้ไป ฿${spent.toLocaleString()})`;
-                valEl.className = 'font-semibold text-slate-400';
-            } else {
-                valEl.textContent = `฿${rem.toLocaleString()} / ฿${allocated.toLocaleString()}`;
-                valEl.className = rem >= 0 ? 'font-semibold text-emerald-400' : 'font-semibold text-rose-400';
-            }
+            valEl.textContent = `${cat}: ฿${rem.toLocaleString()} left`;
+            valEl.className = rem >= 0
+                ? 'text-[11px] font-semibold text-sky-400 bg-slate-900/90 border border-slate-800 px-2.5 py-1 rounded-xl'
+                : 'text-[11px] font-semibold text-rose-400 bg-rose-950/40 border border-rose-500/30 px-2.5 py-1 rounded-xl';
         }
 
-        // --- Slip Compression ---
-        function previewSlip(event, boxId, imgId, isEdit) {
+        // --- Slip Upload ---
+        function previewSlip(event) {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
@@ -948,30 +889,23 @@
                     canvas.height = img.height * scale;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    const b64 = canvas.toDataURL('image/jpeg', 0.75);
-                    if (isEdit) editSlipBase64 = b64;
-                    else currentSlipBase64 = b64;
-                    document.getElementById(imgId).src = b64;
-                    document.getElementById(boxId).classList.remove('hidden');
+                    currentSlipBase64 = canvas.toDataURL('image/jpeg', 0.75);
+                    document.getElementById('slipBtnText').textContent = 'Attached';
+                    document.getElementById('clearSlipBtn').classList.remove('hidden');
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
 
-        function clearSlipPreview(isEdit) {
-            if (isEdit) {
-                editSlipBase64 = null;
-                document.getElementById('editTxSlip').value = '';
-                document.getElementById('editSlipPreviewBox').classList.add('hidden');
-            } else {
-                currentSlipBase64 = null;
-                document.getElementById('txSlip').value = '';
-                document.getElementById('slipPreviewBox').classList.add('hidden');
-            }
+        function clearSlipPreview() {
+            currentSlipBase64 = null;
+            document.getElementById('txSlip').value = '';
+            document.getElementById('slipBtnText').textContent = 'Slip';
+            document.getElementById('clearSlipBtn').classList.add('hidden');
         }
 
-        // --- Add & Edit Daily Transaction ---
+        // --- Transactions CRUD ---
         function saveTransaction(e) {
             e.preventDefault();
             const type = document.getElementById('txType').value;
@@ -979,7 +913,7 @@
                 id: 'tx_' + Date.now(),
                 date: document.getElementById('txDate').value,
                 amount: parseFloat(document.getElementById('txAmount').value),
-                type: type,
+                type,
                 category: document.getElementById('txCategory').value,
                 title: document.getElementById('txTitle').value.trim(),
                 person: (type === 'lend' || type === 'borrow') ? document.getElementById('txPerson').value.trim() : null,
@@ -987,46 +921,34 @@
                 settled: false,
                 slip: currentSlipBase64
             };
-
             state.transactions.unshift(tx);
             saveState();
 
             document.getElementById('txAmount').value = '';
             document.getElementById('txTitle').value = '';
             document.getElementById('txPerson').value = '';
-            clearSlipPreview(false);
+            clearSlipPreview();
             renderAll();
         }
 
         function openEditTxModal(id) {
             const tx = state.transactions.find(t => t.id === id);
             if (!tx) return;
-
             document.getElementById('editTxId').value = tx.id;
             document.getElementById('editTxDate').value = tx.date;
             document.getElementById('editTxAmount').value = tx.amount;
             document.getElementById('editTxType').value = tx.type;
             updateCategoryOptions('editTxType', 'editTxCategory', 'editDebtFields', 'editTxPerson', 'editTxDueDate');
 
-            // รองรับกรณีหมวดหมู่เดิมไม่อยู่ใน list มาตรฐาน
             const catSelect = document.getElementById('editTxCategory');
             if (![...catSelect.options].some(o => o.value === tx.category)) {
                 catSelect.innerHTML += `<option value="${tx.category}">${tx.category}</option>`;
             }
             catSelect.value = tx.category;
-
             document.getElementById('editTxTitle').value = tx.title;
             document.getElementById('editTxPerson').value = tx.person || '';
             document.getElementById('editTxDueDate').value = tx.dueDate || '';
             document.getElementById('editTxSettled').checked = !!tx.settled;
-
-            editSlipBase64 = tx.slip || null;
-            if (editSlipBase64) {
-                document.getElementById('editSlipPreviewImg').src = editSlipBase64;
-                document.getElementById('editSlipPreviewBox').classList.remove('hidden');
-            } else {
-                document.getElementById('editSlipPreviewBox').classList.add('hidden');
-            }
 
             const modal = document.getElementById('editTxModal');
             modal.classList.remove('hidden');
@@ -1044,7 +966,6 @@
             const id = document.getElementById('editTxId').value;
             const tx = state.transactions.find(t => t.id === id);
             if (!tx) return;
-
             const type = document.getElementById('editTxType').value;
             tx.date = document.getElementById('editTxDate').value;
             tx.amount = parseFloat(document.getElementById('editTxAmount').value);
@@ -1054,21 +975,19 @@
             tx.person = (type === 'lend' || type === 'borrow') ? document.getElementById('editTxPerson').value.trim() : null;
             tx.dueDate = (type === 'lend' || type === 'borrow') ? document.getElementById('editTxDueDate').value : null;
             tx.settled = (type === 'lend' || type === 'borrow') ? document.getElementById('editTxSettled').checked : false;
-            tx.slip = editSlipBase64;
-
             saveState();
             closeEditTxModal();
             renderAll();
         }
 
         function deleteTransaction(id) {
-            if (!confirm('ต้องการลบรายการนี้ใช่หรือไม่?')) return;
+            if (!confirm('Delete this entry?')) return;
             state.transactions = state.transactions.filter(t => t.id !== id);
             saveState();
             renderAll();
         }
 
-        // --- ShopeePayLater Calculation & Logic ---
+        // --- Installments, SPayLater & Subscriptions ---
         function monthDiff(startYM, targetYM) {
             const [sy, sm] = startYM.split('-').map(Number);
             const [ty, tm] = targetYM.split('-').map(Number);
@@ -1077,24 +996,11 @@
 
         function getSpayItemStatusForMonth(item, targetYM) {
             const startYM = item.startMonth || '2026-10';
-            const diff = monthDiff(startYM, targetYM);
-            const installmentNo = diff + 1;
+            const installmentNo = monthDiff(startYM, targetYM) + 1;
             const isActiveInMonth = installmentNo >= 1 && installmentNo <= item.totalMonths;
             const override = item.monthlyOverrides?.[targetYM];
-
-            let amountForMonth = 0;
-            if (override !== undefined && override !== null) {
-                amountForMonth = parseFloat(override);
-            } else if (isActiveInMonth) {
-                amountForMonth = item.monthly;
-            }
-
-            return {
-                isActiveInMonth: isActiveInMonth || (override !== undefined && override > 0),
-                installmentNo: Math.max(1, Math.min(item.totalMonths, installmentNo)),
-                amountForMonth,
-                hasOverride: override !== undefined
-            };
+            const amountForMonth = (override !== undefined && override !== null) ? parseFloat(override) : (isActiveInMonth ? item.monthly : 0);
+            return { isActiveInMonth: isActiveInMonth || (override !== undefined && override > 0), amountForMonth };
         }
 
         function getSpayMonthlyTotal(targetYM) {
@@ -1105,189 +1011,75 @@
             }, 0);
         }
 
-        function openSpayModal() {
-            const currentFilterMonth = document.getElementById('monthFilter').value;
-            document.getElementById('spayModalMonth').value = currentFilterMonth;
-            resetSpayForm();
-            renderSpayModalContent();
-            const modal = document.getElementById('spayModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+        function openFixedManagerModal() {
+            renderFixedModalContent();
+            const m = document.getElementById('fixedManagerModal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
         }
 
-        function closeSpayModal() {
-            const modal = document.getElementById('spayModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+        function closeFixedManagerModal() {
+            const m = document.getElementById('fixedManagerModal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
             renderAll();
         }
 
         function saveSpayItem(e) {
             e.preventDefault();
-            const editId = document.getElementById('spayEditId').value;
-            const name = document.getElementById('spayName').value.trim();
-            const monthly = parseFloat(document.getElementById('spayMonthly').value);
-            const totalMonths = parseInt(document.getElementById('spayTotalMonths').value);
-            const startMonth = document.getElementById('spayStartMonth').value;
-            const paidMonths = parseInt(document.getElementById('spayPaidMonths').value) || 0;
-
-            if (editId) {
-                const item = state.spaylater.find(i => i.id === editId);
-                if (item) {
-                    item.name = name;
-                    item.monthly = monthly;
-                    item.totalMonths = totalMonths;
-                    item.startMonth = startMonth;
-                    item.paidMonths = paidMonths;
-                }
-            } else {
-                state.spaylater.push({
-                    id: 'spay_' + Date.now(),
-                    name,
-                    monthly,
-                    totalMonths,
-                    paidMonths,
-                    startMonth,
-                    monthlyOverrides: {}
-                });
-            }
-
+            const ym = document.getElementById('monthFilter').value;
+            state.spaylater.push({
+                id: 'spay_' + Date.now(),
+                name: document.getElementById('spayName').value.trim(),
+                monthly: parseFloat(document.getElementById('spayMonthly').value),
+                totalMonths: parseInt(document.getElementById('spayTotalMonths').value),
+                paidMonths: 0,
+                startMonth: ym,
+                monthlyOverrides: {}
+            });
+            e.target.reset();
             saveState();
-            resetSpayForm();
-            renderSpayModalContent();
-            renderAll();
-        }
-
-        function editSpayItem(id) {
-            const item = state.spaylater.find(i => i.id === id);
-            if (!item) return;
-            document.getElementById('spayFormTitle').textContent = `✏️ แก้ไขรายการ: ${item.name}`;
-            document.getElementById('spayCancelEditBtn').classList.remove('hidden');
-            document.getElementById('spayEditId').value = item.id;
-            document.getElementById('spayName').value = item.name;
-            document.getElementById('spayMonthly').value = item.monthly;
-            document.getElementById('spayTotalMonths').value = item.totalMonths;
-            document.getElementById('spayStartMonth').value = item.startMonth || '2026-10';
-            document.getElementById('spayPaidMonths').value = item.paidMonths || 0;
-            document.getElementById('spaySubmitBtn').textContent = '💾 อัปเดตรายการ';
-        }
-
-        function resetSpayForm() {
-            document.getElementById('spayFormTitle').textContent = '+ เพิ่มรายการผ่อนใน ShopeePayLater';
-            document.getElementById('spayCancelEditBtn').classList.add('hidden');
-            document.getElementById('spayEditId').value = '';
-            document.getElementById('spayName').value = '';
-            document.getElementById('spayMonthly').value = '';
-            document.getElementById('spayTotalMonths').value = '';
-            document.getElementById('spayStartMonth').value = document.getElementById('monthFilter').value;
-            document.getElementById('spayPaidMonths').value = '0';
-            document.getElementById('spaySubmitBtn').textContent = 'บันทึกเข้า SPayLater';
-        }
-
-        function setSpayMonthOverride(id, targetYM, val) {
-            const item = state.spaylater.find(i => i.id === id);
-            if (!item) return;
-            if (!item.monthlyOverrides) item.monthlyOverrides = {};
-            const num = parseFloat(val);
-            if (isNaN(num)) {
-                delete item.monthlyOverrides[targetYM];
-            } else {
-                item.monthlyOverrides[targetYM] = num;
-            }
-            saveState();
-            renderSpayModalContent();
+            renderFixedModalContent();
             renderAll();
         }
 
         function deleteSpayItem(id) {
-            if (!confirm('ลบรายการนี้ออกจาก ShopeePayLater?')) return;
             state.spaylater = state.spaylater.filter(i => i.id !== id);
             saveState();
-            renderSpayModalContent();
+            renderFixedModalContent();
             renderAll();
-        }
-
-        function renderSpayModalContent() {
-            const targetYM = document.getElementById('spayModalMonth').value;
-            const total = getSpayMonthlyTotal(targetYM);
-            document.getElementById('spayModalMonthSum').textContent = `฿${total.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}`;
-
-            const listEl = document.getElementById('spayModalList');
-            if (state.spaylater.length === 0) {
-                listEl.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">ยังไม่มีรายการใน ShopeePayLater</p>`;
-                return;
-            }
-
-            listEl.innerHTML = state.spaylater.map(item => {
-                const st = getSpayItemStatusForMonth(item, targetYM);
-                const remMonths = Math.max(0, item.totalMonths - item.paidMonths);
-                const remTotal = remMonths * item.monthly;
-
-                return `
-                    <div class="bg-ios-bg border ${st.isActiveInMonth ? 'border-orange-500/40' : 'border-slate-800 opacity-60'} rounded-2xl p-3.5 space-y-2">
-                        <div class="flex justify-between items-start gap-2">
-                            <div>
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <h4 class="text-sm font-semibold text-white">${item.name}</h4>
-                                    <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full">จ่ายแล้ว ${item.paidMonths}/${item.totalMonths} งวด</span>
-                                    ${st.isActiveInMonth ? `<span class="text-[10px] bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full">งวดเดือน ${targetYM}</span>` : `<span class="text-[10px] bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full">ไม่อยู่ในรอบเดือนนี้</span>`}
-                                </div>
-                                <p class="text-xs text-slate-400 mt-0.5">เริ่ม ${item.startMonth} • ปกติเดือนละ ฿${item.monthly.toLocaleString()} • คงเหลือรวม ฿${remTotal.toLocaleString()}</p>
-                            </div>
-                            <div class="flex items-center gap-1.5 shrink-0">
-                                <button onclick="editSpayItem('${item.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-sky-300 px-2.5 py-1 rounded-lg">✏️ แก้ไข</button>
-                                <button onclick="deleteSpayItem('${item.id}')" class="text-xs bg-slate-800 hover:bg-rose-900/50 text-rose-400 px-2 py-1 rounded-lg">🗑️</button>
-                            </div>
-                        </div>
-
-                        <div class="pt-2 border-t border-slate-800/80 flex flex-wrap justify-between items-center gap-2 text-xs">
-                            <span class="text-slate-400">ปรับยอดที่ต้องจ่ายเฉพาะเดือน <strong class="text-orange-300">${targetYM}</strong>:</span>
-                            <div class="flex items-center gap-2">
-                                <input type="number" step="0.01" value="${st.amountForMonth}" onchange="setSpayMonthOverride('${item.id}', '${targetYM}', this.value)" class="w-28 bg-ios-card border border-slate-700 rounded-xl px-2.5 py-1 text-right text-orange-300 font-bold">
-                                <span class="text-slate-400">฿</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
         }
 
         function paySpayLaterMonth() {
             const ym = document.getElementById('monthFilter').value;
             const total = getSpayMonthlyTotal(ym);
-            if (total <= 0) {
-                alert('ไม่มีียอด ShopeePayLater ที่ต้องชำระในเดือนนี้');
-                return;
-            }
-
-            const activeNames = [];
+            if (total <= 0) return;
+            const names = [];
             state.spaylater.forEach(item => {
                 if (item.paidMonths < item.totalMonths) {
                     const st = getSpayItemStatusForMonth(item, ym);
                     if (st.isActiveInMonth && st.amountForMonth > 0) {
                         item.paidMonths += 1;
-                        activeNames.push(`${item.name}`);
+                        names.push(item.name);
                     }
                 }
             });
-
             const now = new Date();
             const localISO = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
             state.transactions.unshift({
                 id: 'tx_' + Date.now(),
                 date: localISO,
                 amount: total,
-                type: 'expense_fix',
-                category: '💳 ผ่อนชำระสินค้า',
-                title: `จ่ายบิล ShopeePayLater (${activeNames.join(', ')})`,
+                type: 'expense',
+                category: 'Installments',
+                title: `SPayLater (${names.join(', ')})`,
                 slip: null
             });
-
             saveState();
+            renderFixedModalContent();
             renderAll();
         }
 
-        // --- General Installments & Subscriptions ---
         function addInstallment(e) {
             e.preventDefault();
             state.installments.push({
@@ -1299,23 +1091,7 @@
             });
             e.target.reset();
             saveState();
-            renderAll();
-        }
-
-        function moveInstToSpay(id) {
-            const inst = state.installments.find(i => i.id === id);
-            if (!inst) return;
-            state.spaylater.push({
-                id: 'spay_' + Date.now(),
-                name: inst.name,
-                monthly: inst.monthly,
-                totalMonths: inst.totalMonths,
-                paidMonths: inst.paidMonths || 0,
-                startMonth: document.getElementById('monthFilter').value,
-                monthlyOverrides: {}
-            });
-            state.installments = state.installments.filter(i => i.id !== id);
-            saveState();
+            renderFixedModalContent();
             renderAll();
         }
 
@@ -1323,26 +1099,26 @@
             const item = state.installments.find(i => i.id === id);
             if (!item || item.paidMonths >= item.totalMonths) return;
             item.paidMonths += 1;
-
             const now = new Date();
             const localISO = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
             state.transactions.unshift({
                 id: 'tx_' + Date.now(),
                 date: localISO,
                 amount: item.monthly,
-                type: 'expense_fix',
-                category: '💳 ผ่อนชำระสินค้า',
-                title: `ผ่อน ${item.name} (งวดที่ ${item.paidMonths}/${item.totalMonths})`,
+                type: 'expense',
+                category: 'Installments',
+                title: `${item.name} (${item.paidMonths}/${item.totalMonths})`,
                 slip: null
             });
             saveState();
+            renderFixedModalContent();
             renderAll();
         }
 
         function deleteInstallment(id) {
-            if (!confirm('ลบรายการผ่อนนี้?')) return;
             state.installments = state.installments.filter(i => i.id !== id);
             saveState();
+            renderFixedModalContent();
             renderAll();
         }
 
@@ -1356,6 +1132,7 @@
             });
             e.target.reset();
             saveState();
+            renderFixedModalContent();
             renderAll();
         }
 
@@ -1368,81 +1145,142 @@
                 id: 'tx_' + Date.now(),
                 date: localISO,
                 amount: sub.price,
-                type: 'expense_fix',
-                category: '🔄 Subscription รายเดือน',
-                title: `ค่าบริการ ${sub.name}`,
+                type: 'expense',
+                category: 'Installments',
+                title: `Sub: ${sub.name}`,
                 slip: null
             });
             saveState();
+            renderFixedModalContent();
             renderAll();
         }
 
         function deleteSubscription(id) {
-            if (!confirm('ลบรายการ Subscription นี้?')) return;
             state.subscriptions = state.subscriptions.filter(s => s.id !== id);
             saveState();
+            renderFixedModalContent();
             renderAll();
         }
 
-        // Modal แก้ไข Installment หรือ Subscription
-        function openEditItemModal(mode, id) {
-            document.getElementById('editItemMode').value = mode;
-            document.getElementById('editItemId').value = id;
-            const modal = document.getElementById('editItemModal');
+        function renderFixedModalContent() {
+            const ym = document.getElementById('monthFilter').value;
+            const spaySum = getSpayMonthlyTotal(ym);
+            document.getElementById('spayModalMonthSum').textContent = `฿${spaySum.toLocaleString()}`;
 
-            if (mode === 'inst') {
-                const item = state.installments.find(i => i.id === id);
-                if (!item) return;
-                document.getElementById('editItemModalTitle').textContent = '✏️ แก้ไขรายการผ่อนสินค้า';
-                document.getElementById('editItemName').value = item.name;
-                document.getElementById('editItemPrice').value = item.monthly;
-                document.getElementById('editItemExtraLabel1').textContent = 'จำนวนงวดทั้งหมด';
-                document.getElementById('editItemExtra1').value = item.totalMonths;
-                document.getElementById('editItemExtraBox2').classList.remove('hidden');
-                document.getElementById('editItemExtra2').value = item.paidMonths;
-            } else {
-                const sub = state.subscriptions.find(s => s.id === id);
-                if (!sub) return;
-                document.getElementById('editItemModalTitle').textContent = '✏️ แก้ไข Subscription';
-                document.getElementById('editItemName').value = sub.name;
-                document.getElementById('editItemPrice').value = sub.price;
-                document.getElementById('editItemExtraLabel1').textContent = 'ตัดรอบทุกวันที่ (1-31)';
-                document.getElementById('editItemExtra1').value = sub.billingDay;
-                document.getElementById('editItemExtraBox2').classList.add('hidden');
-            }
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            const spayEl = document.getElementById('spayModalList');
+            spayEl.innerHTML = state.spaylater.length === 0
+                ? `<p class="text-[11px] text-slate-500 py-1">No SPayLater items</p>`
+                : state.spaylater.map(item => `
+                    <div class="bg-ios-card border border-slate-800 rounded-xl p-2.5 flex justify-between items-center text-xs">
+                        <div>
+                            <p class="font-semibold text-white">${item.name}</p>
+                            <p class="text-[10px] text-slate-400">฿${item.monthly.toLocaleString()}/mo • ${item.paidMonths}/${item.totalMonths} paid</p>
+                        </div>
+                        <button onclick="deleteSpayItem('${item.id}')" class="text-rose-400 hover:text-rose-300 px-2">✕</button>
+                    </div>
+                `).join('');
+
+            const instEl = document.getElementById('installmentList');
+            instEl.innerHTML = state.installments.length === 0
+                ? `<p class="text-[11px] text-slate-500 py-1">No installments</p>`
+                : state.installments.map(i => `
+                    <div class="bg-ios-card border border-slate-800 rounded-xl p-2.5 flex justify-between items-center text-xs">
+                        <div>
+                            <p class="font-semibold text-white">${i.name}</p>
+                            <p class="text-[10px] text-slate-400">฿${i.monthly.toLocaleString()}/mo • ${i.paidMonths}/${i.totalMonths}</p>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            ${i.paidMonths < i.totalMonths ? `<button onclick="payInstallmentMonth('${i.id}')" class="bg-emerald-600 text-white text-[10px] px-2.5 py-1 rounded-lg">Pay</button>` : ''}
+                            <button onclick="deleteInstallment('${i.id}')" class="text-rose-400 px-1.5">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+
+            const subEl = document.getElementById('subscriptionList');
+            subEl.innerHTML = state.subscriptions.length === 0
+                ? `<p class="text-[11px] text-slate-500 py-1">No subscriptions</p>`
+                : state.subscriptions.map(s => `
+                    <div class="bg-ios-card border border-slate-800 rounded-xl p-2.5 flex justify-between items-center text-xs">
+                        <div>
+                            <p class="font-semibold text-white">${s.name}</p>
+                            <p class="text-[10px] text-slate-400">Day ${s.billingDay} • ฿${s.price.toLocaleString()}/mo</p>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="paySubscriptionNow('${s.id}')" class="bg-purple-600 text-white text-[10px] px-2.5 py-1 rounded-lg">Pay</button>
+                            <button onclick="deleteSubscription('${s.id}')" class="text-rose-400 px-1.5">✕</button>
+                        </div>
+                    </div>
+                `).join('');
         }
 
-        function closeEditItemModal() {
-            const modal = document.getElementById('editItemModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+        // --- Debt Manager Modal ---
+        function openDebtManagerModal() {
+            renderDebtsModalContent();
+            const m = document.getElementById('debtManagerModal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
         }
 
-        function saveEditedItem(e) {
-            e.preventDefault();
-            const mode = document.getElementById('editItemMode').value;
-            const id = document.getElementById('editItemId').value;
-            if (mode === 'inst') {
-                const item = state.installments.find(i => i.id === id);
-                if (item) {
-                    item.name = document.getElementById('editItemName').value.trim();
-                    item.monthly = parseFloat(document.getElementById('editItemPrice').value);
-                    item.totalMonths = parseInt(document.getElementById('editItemExtra1').value);
-                    item.paidMonths = parseInt(document.getElementById('editItemExtra2').value) || 0;
-                }
-            } else {
-                const sub = state.subscriptions.find(s => s.id === id);
-                if (sub) {
-                    sub.name = document.getElementById('editItemName').value.trim();
-                    sub.price = parseFloat(document.getElementById('editItemPrice').value);
-                    sub.billingDay = parseInt(document.getElementById('editItemExtra1').value);
-                }
+        function closeDebtManagerModal() {
+            const m = document.getElementById('debtManagerModal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+            renderAll();
+        }
+
+        function settleDebt(id) {
+            const tx = state.transactions.find(t => t.id === id);
+            if (!tx || tx.settled) return;
+            tx.settled = true;
+
+            const now = new Date();
+            const localISO = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            if (tx.type === 'lend') {
+                state.transactions.unshift({
+                    id: 'tx_' + Date.now(),
+                    date: localISO,
+                    amount: tx.amount,
+                    type: 'income',
+                    category: 'Debt Repayment',
+                    title: `Repaid by ${tx.person} (${tx.title})`,
+                    slip: null
+                });
+            } else if (tx.type === 'borrow') {
+                state.transactions.unshift({
+                    id: 'tx_' + Date.now(),
+                    date: localISO,
+                    amount: tx.amount,
+                    type: 'expense',
+                    category: 'Food',
+                    title: `Paid back ${tx.person} (${tx.title})`,
+                    slip: null
+                });
             }
             saveState();
-            closeEditItemModal();
+            renderDebtsModalContent();
             renderAll();
+        }
+
+        function renderDebtsModalContent() {
+            const lends = state.transactions.filter(t => t.type === 'lend' && !t.settled);
+            const borrows = state.transactions.filter(t => t.type === 'borrow' && !t.settled);
+
+            const renderItem = (t, isLend) => `
+                <div class="bg-ios-bg border border-slate-800 rounded-xl p-3 flex justify-between items-center text-xs">
+                    <div>
+                        <p class="font-bold text-white">${t.person || 'Unknown'} — ${t.title}</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Due: ${t.dueDate ? t.dueDate.replace('T', ' ') : '-'}</p>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-bold ${isLend ? 'text-sky-400' : 'text-rose-400'}">฿${t.amount.toLocaleString()}</span>
+                        <button onclick="openEditTxModal('${t.id}')" class="bg-slate-800 text-slate-300 px-2 py-1 rounded-lg text-[10px]">Edit</button>
+                        <button onclick="settleDebt('${t.id}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-medium">Settle</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('lendList').innerHTML = lends.length ? lends.map(t => renderItem(t, true)).join('') : `<p class="text-[11px] text-slate-500">No pending lent items</p>`;
+            document.getElementById('borrowList').innerHTML = borrows.length ? borrows.map(t => renderItem(t, false)).join('') : `<p class="text-[11px] text-slate-500">No pending borrowed items</p>`;
         }
 
         // --- Budget Allocation Functions ---
@@ -1460,9 +1298,7 @@
             const spayMonth = getSpayMonthlyTotal(ym);
             const instMonth = state.installments.filter(i => i.paidMonths < i.totalMonths).reduce((s, i) => s + i.monthly, 0);
             const subMonth = state.subscriptions.reduce((s, sub) => s + sub.price, 0);
-
-            state.budgets[ym]['💳 ผ่อนชำระสินค้า'] = spayMonth + instMonth;
-            state.budgets[ym]['🔄 Subscription รายเดือน'] = subMonth;
+            state.budgets[ym]['Installments'] = spayMonth + instMonth + subMonth;
             saveState();
             renderAll();
         }
@@ -1476,43 +1312,7 @@
                 state.budgets[ym] = { ...state.budgets[prevYM] };
                 saveState();
                 renderAll();
-            } else {
-                alert(`ไม่พบข้อมูลงบของเดือน ${prevYM}`);
             }
-        }
-
-        // --- Settle Debt ---
-        function settleDebt(id) {
-            const tx = state.transactions.find(t => t.id === id);
-            if (!tx || tx.settled) return;
-            tx.settled = true;
-
-            const now = new Date();
-            const localISO = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-
-            if (tx.type === 'lend') {
-                state.transactions.unshift({
-                    id: 'tx_' + Date.now(),
-                    date: localISO,
-                    amount: tx.amount,
-                    type: 'income',
-                    category: '🔄 รับเงินคืนจากเพื่อน',
-                    title: `รับเงินคืนจาก ${tx.person} (${tx.title})`,
-                    slip: null
-                });
-            } else if (tx.type === 'borrow') {
-                state.transactions.unshift({
-                    id: 'tx_' + Date.now(),
-                    date: localISO,
-                    amount: tx.amount,
-                    type: 'expense_var',
-                    category: '📦 อื่นๆ (ผันแปร)',
-                    title: `โอนคืนเงินให้ ${tx.person} (${tx.title})`,
-                    slip: null
-                });
-            }
-            saveState();
-            renderAll();
         }
 
         // --- Master Render ---
@@ -1526,135 +1326,47 @@
 
             monthTx.forEach(t => {
                 if (t.type === 'income') income += t.amount;
-                else if (['expense_var', 'expense_free', 'expense_fix'].includes(t.type)) {
+                else if (t.type === 'expense') {
                     expense += t.amount;
                     catTotals[t.category] = (catTotals[t.category] || 0) + t.amount;
                 } else if (t.type === 'saving') {
                     saving += t.amount;
                     catTotals[t.category] = (catTotals[t.category] || 0) + t.amount;
-                } else if (t.type === 'lend' && !t.settled) {
-                    lentUnsettled += t.amount;
-                } else if (t.type === 'borrow' && !t.settled) {
-                    borrowUnsettled += t.amount;
                 }
             });
 
+            state.transactions.forEach(t => {
+                if (t.type === 'lend' && !t.settled) lentUnsettled += t.amount;
+                if (t.type === 'borrow' && !t.settled) borrowUnsettled += t.amount;
+            });
+
             const spayMonthly = getSpayMonthlyTotal(selectedMonth);
-            const activeInstSum = state.installments
-                .filter(i => i.paidMonths < i.totalMonths)
-                .reduce((acc, cur) => acc + cur.monthly, 0);
-            const subSum = state.subscriptions.reduce((acc, cur) => acc + cur.price, 0);
+            const activeInstSum = state.installments.filter(i => i.paidMonths < i.totalMonths).reduce((a, c) => a + c.monthly, 0);
+            const subSum = state.subscriptions.reduce((a, c) => a + c.price, 0);
+            const fixedTotal = spayMonthly + activeInstSum + subSum;
             const balance = income + borrowUnsettled - expense - saving - lentUnsettled;
 
             const fmt = (n) => `฿${n.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}`;
             document.getElementById('sumIncome').textContent = fmt(income);
             document.getElementById('sumExpense').textContent = fmt(expense);
             document.getElementById('sumSaving').textContent = fmt(saving);
-            document.getElementById('sumFixedPending').textContent = fmt(spayMonthly + activeInstSum + subSum);
+            document.getElementById('sumFixedPending').textContent = fmt(fixedTotal);
             document.getElementById('sumLent').textContent = fmt(lentUnsettled);
             document.getElementById('sumBalance').textContent = fmt(balance);
 
-            showBudgetHint();
-            renderCategoryBreakdown(catTotals, expense + saving);
-            renderTransactions();
-            renderBudgetsTab(selectedMonth, income, catTotals, expense + saving);
-            renderInstallmentsAndSubs(selectedMonth);
-            renderDebts();
-            renderSlips();
-        }
-
-        function renderCategoryBreakdown(catTotals, totalOut) {
-            const box = document.getElementById('categoryBreakdown');
-            const bar = document.getElementById('proportionStackedBar');
-            const label = document.getElementById('proportionTotalLabel');
-            label.textContent = `รวมออก ฿${totalOut.toLocaleString()}`;
-
-            const entries = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
-            if (entries.length === 0) {
-                bar.innerHTML = `<div class="w-full bg-slate-800 h-full"></div>`;
-                box.innerHTML = `<p class="text-slate-500 text-center py-4">ยังไม่มีรายการใช้จ่ายในเดือนนี้</p>`;
-                return;
+            const pendingDebtsCount = state.transactions.filter(t => (t.type === 'lend' || t.type === 'borrow') && !t.settled).length;
+            const badge = document.getElementById('debtBadge');
+            if (pendingDebtsCount > 0) {
+                badge.textContent = pendingDebtsCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
             }
 
-            const palette = ['#38bdf8', '#f43f5e', '#fbbf24', '#a855f7', '#34d399', '#fb923c', '#ec4899'];
-            bar.innerHTML = entries.map(([cat, amt], idx) => {
-                const pct = totalOut > 0 ? (amt / totalOut) * 100 : 0;
-                const color = palette[idx % palette.length];
-                return `<div style="width:${pct}%; background-color:${color}" title="${cat}: ฿${amt.toLocaleString()}"></div>`;
-            }).join('');
-
-            box.innerHTML = entries.map(([cat, amt], idx) => {
-                const pct = totalOut > 0 ? Math.round((amt / totalOut) * 100) : 0;
-                const color = palette[idx % palette.length];
-                return `
-                    <div class="flex justify-between items-center py-1 border-b border-slate-800/60 last:border-0">
-                        <div class="flex items-center gap-2 truncate">
-                            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${color}"></span>
-                            <span class="text-slate-200 truncate">${cat}</span>
-                        </div>
-                        <div class="text-right shrink-0">
-                            <span class="font-semibold text-white">฿${amt.toLocaleString()}</span>
-                            <span class="text-slate-400 ml-1">(${pct}%)</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderBudgetsTab(ym, income, catTotals, totalUsed) {
-            const bgtMap = state.budgets[ym] || {};
-            const totalAllocated = Object.values(bgtMap).reduce((s, v) => s + (parseFloat(v) || 0), 0);
-            const unallocated = income - totalAllocated;
-
-            const fmt = (n) => `฿${n.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}`;
-            document.getElementById('bgtTotalIncome').textContent = fmt(income);
-            document.getElementById('bgtTotalAllocated').textContent = fmt(totalAllocated);
-            document.getElementById('bgtTotalUsed').textContent = fmt(totalUsed);
-            document.getElementById('bgtUnallocated').textContent = fmt(unallocated);
-
-            const grid = document.getElementById('budgetPocketsGrid');
-            grid.innerHTML = BUDGET_CATEGORIES.map(item => {
-                const allocated = parseFloat(bgtMap[item.cat]) || 0;
-                const spent = catTotals[item.cat] || 0;
-                const remaining = allocated - spent;
-                const pct = allocated > 0 ? Math.min(100, Math.round((spent / allocated) * 100)) : (spent > 0 ? 100 : 0);
-                const isOver = remaining < 0;
-
-                return `
-                    <div class="bg-ios-card border ${isOver ? 'border-rose-500/60' : 'border-ios-border'} rounded-3xl p-4 flex flex-col justify-between space-y-3">
-                        <div>
-                            <div class="flex justify-between items-start gap-2">
-                                <div>
-                                    <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">${item.group}</span>
-                                    <h4 class="text-sm font-bold text-white mt-1.5">${item.cat}</h4>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[10px] text-slate-400">คงเหลือใช้ได้</p>
-                                    <p class="text-base font-bold ${isOver ? 'text-rose-400' : 'text-emerald-400'}">฿${remaining.toLocaleString()}</p>
-                                </div>
-                            </div>
-
-                            <div class="mt-3">
-                                <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-                                    <span>ใช้จริง: <strong class="text-slate-200">฿${spent.toLocaleString()}</strong></span>
-                                    <span>${pct}% ของงบ</span>
-                                </div>
-                                <div class="w-full bg-ios-bg rounded-full h-2 overflow-hidden border border-slate-800">
-                                    <div class="h-full rounded-full transition-all ${isOver ? 'bg-rose-500' : (pct > 80 ? 'bg-amber-400' : 'bg-sky-500')}" style="width:${pct}%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pt-2.5 border-t border-slate-800/80 flex justify-between items-center text-xs">
-                            <span class="text-slate-400">ตั้งงบเดือนนี้:</span>
-                            <div class="flex items-center gap-1.5">
-                                <input type="number" step="10" value="${allocated}" onchange="updatePocketBudget('${item.cat}', this.value)" class="w-24 bg-ios-bg border border-slate-700 rounded-xl px-2.5 py-1 text-right text-sky-300 font-bold focus:border-sky-500 focus:outline-none">
-                                <span class="text-slate-400">฿</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            showBudgetHint();
+            renderTransactions();
+            renderSummaryTab();
+            renderAllocateTab(selectedMonth, income, catTotals, expense + saving, spayMonthly, activeInstSum, subSum, lentUnsettled, borrowUnsettled);
         }
 
         function renderTransactions() {
@@ -1670,198 +1382,369 @@
 
             const container = document.getElementById('txList');
             if (list.length === 0) {
-                container.innerHTML = `<div class="text-center py-12 text-slate-500 text-xs">ไม่พบรายการในช่วงเวลานี้</div>`;
+                container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">No entries found</div>`;
                 return;
             }
 
-            const badgeColors = {
-                income: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
-                expense_var: 'text-rose-400 bg-rose-500/10 border-rose-500/30',
-                expense_free: 'text-pink-400 bg-pink-500/10 border-pink-500/30',
-                expense_fix: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
-                saving: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
-                lend: 'text-sky-400 bg-sky-500/10 border-sky-500/30',
-                borrow: 'text-orange-400 bg-orange-500/10 border-orange-500/30'
-            };
-
             container.innerHTML = list.map(t => {
                 const sign = (t.type === 'income' || t.type === 'borrow') ? '+' : '-';
-                const colorClass = badgeColors[t.type] || 'text-slate-300';
-                const formattedDate = t.date.replace('T', ' น. (') + ')';
+                const amtColor = sign === '+' ? 'text-emerald-400' : 'text-rose-400';
+                const catColor = BUDGET_CATEGORIES.find(b => b.cat === t.category)?.color || '#38bdf8';
+
                 return `
-                    <div class="bg-ios-bg/90 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between gap-2.5">
-                        <div class="flex items-start gap-3 min-w-0">
-                            <div class="px-2.5 py-1.5 rounded-xl border text-xs font-semibold shrink-0 ${colorClass}">
-                                ${t.category.split(' ')[0]}
-                            </div>
+                    <div class="bg-ios-bg/90 border border-slate-800/90 rounded-2xl p-3 flex items-center justify-between gap-2.5">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="w-1.5 h-8 rounded-full shrink-0" style="background-color:${catColor}"></span>
                             <div class="min-w-0">
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <p class="text-sm font-semibold text-white truncate">${t.title}</p>
-                                    ${t.person ? `<span class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-lg">👤 ${t.person}</span>` : ''}
-                                    ${t.settled ? `<span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded-lg">เคลียร์แล้ว</span>` : ''}
+                                <div class="flex items-center gap-1.5">
+                                    <p class="text-xs font-semibold text-white truncate">${t.title}</p>
+                                    ${t.person ? `<span class="text-[10px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded-md">${t.person}</span>` : ''}
                                 </div>
-                                <p class="text-[11px] text-slate-400 mt-0.5">${TYPE_LABELS[t.type] || t.type} • ${t.category}</p>
-                                <p class="text-[10px] text-slate-500 mt-0.5">🕒 ${formattedDate}</p>
-                                ${t.dueDate && !t.settled ? `<p class="text-[11px] text-amber-400 mt-0.5">⏰ นัดคืน: ${t.dueDate.replace('T', ' ')}</p>` : ''}
+                                <p class="text-[10px] text-slate-400 mt-0.5">${t.category} • ${t.date.slice(5).replace('T', ' ')}</p>
                             </div>
                         </div>
-
-                        <div class="flex flex-col items-end gap-1.5 shrink-0">
-                            <span class="text-sm font-bold ${sign === '+' ? 'text-emerald-400' : 'text-rose-400'}">${sign}฿${t.amount.toLocaleString()}</span>
-                            <div class="flex items-center gap-1.5">
-                                ${t.slip ? `<button onclick="openSlipModal('${t.id}')" class="text-[11px] bg-slate-800 text-sky-400 px-2 py-1 rounded-lg">🧾 สลิป</button>` : ''}
-                                <button onclick="openEditTxModal('${t.id}')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1 rounded-lg" title="แก้ไข">✏️</button>
-                                <button onclick="deleteTransaction('${t.id}')" class="text-[11px] bg-slate-800 hover:bg-rose-900/40 text-rose-400 px-2 py-1 rounded-lg" title="ลบ">🗑️</button>
-                            </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="text-xs font-bold ${amtColor} mr-1">${sign}฿${t.amount.toLocaleString()}</span>
+                            ${t.slip ? `
+                                <button onclick="openSlipModal('${t.id}')" class="p-1.5 bg-slate-800/90 hover:bg-slate-700 text-sky-400 rounded-lg" title="Receipt">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </button>
+                            ` : ''}
+                            <button onclick="openEditTxModal('${t.id}')" class="p-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-300 rounded-lg" title="Edit">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            </button>
+                            <button onclick="deleteTransaction('${t.id}')" class="p-1.5 bg-slate-800/90 hover:bg-rose-950/60 text-rose-400 rounded-lg" title="Delete">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        function renderInstallmentsAndSubs(selectedMonth) {
-            // 1. ShopeePayLater Card Summary
-            const spayMonthly = getSpayMonthlyTotal(selectedMonth);
-            const spayRemTotal = state.spaylater.reduce((s, i) => s + Math.max(0, i.totalMonths - i.paidMonths) * i.monthly, 0);
-            document.getElementById('spayTargetMonthText').textContent = selectedMonth;
-            document.getElementById('spayMonthlyTotal').textContent = `฿${spayMonthly.toLocaleString()}`;
-            document.getElementById('spayRemainingTotal').textContent = `ยอดคงเหลือรวมทุกงวด: ฿${spayRemTotal.toLocaleString()}`;
-            document.getElementById('spayMonthBadge').textContent = `${state.spaylater.filter(i => i.paidMonths < i.totalMonths).length} รายการกำลังผ่อน`;
+        // --- Page 2: Summary Render ---
+        function renderSummaryTab() {
+            const ym = document.getElementById('monthFilter').value;
+            const monthTx = state.transactions.filter(t => t.date.startsWith(ym) && (t.type === 'expense' || t.type === 'saving'));
 
-            const quickSumEl = document.getElementById('spayQuickSummary');
-            quickSumEl.innerHTML = state.spaylater.map(item => {
-                const st = getSpayItemStatusForMonth(item, selectedMonth);
-                if (!st.isActiveInMonth || item.paidMonths >= item.totalMonths) return '';
-                return `
-                    <span onclick="openSpayModal()" class="cursor-pointer text-xs bg-ios-bg/90 border border-orange-500/30 text-orange-200 px-2.5 py-1 rounded-xl flex items-center gap-1.5">
-                        <span>• ${item.name}:</span>
-                        <strong class="text-orange-400">฿${st.amountForMonth.toLocaleString()}</strong>
-                        <span class="text-[10px] text-slate-400">(${item.paidMonths}/${item.totalMonths})</span>
-                    </span>
-                `;
-            }).join('');
+            const catTotals = {};
+            let totalSpent = 0;
+            monthTx.forEach(t => {
+                catTotals[t.category] = (catTotals[t.category] || 0) + t.amount;
+                totalSpent += t.amount;
+            });
 
-            // 2. General Installments
-            const instBox = document.getElementById('installmentList');
-            if (state.installments.length === 0) {
-                instBox.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">ไม่มีรายการผ่อนแยกนอกเหนือจาก ShopeePayLater</p>`;
+            const svg = document.getElementById('pieChartSvg');
+            const legend = document.getElementById('pieLegendList');
+            const entries = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+
+            document.getElementById('pieCountBadge').textContent = `${entries.length} Active Categories`;
+
+            if (entries.length === 0) {
+                svg.innerHTML = `<circle cx="0" cy="0" r="1" fill="#1e293b" />`;
+                document.getElementById('pieCenterLabel').textContent = 'Total Outflow';
+                document.getElementById('pieCenterValue').textContent = '฿0';
+                legend.innerHTML = `<p class="text-slate-500 text-xs py-4 text-center">No spending recorded this month</p>`;
             } else {
-                instBox.innerHTML = state.installments.map(i => {
-                    const pct = Math.min(100, Math.round((i.paidMonths / i.totalMonths) * 100));
-                    const remainingMonths = i.totalMonths - i.paidMonths;
-                    const remainingAmt = remainingMonths * i.monthly;
+                let cumulativePercent = 0;
+                svg.innerHTML = entries.map(([cat, amt]) => {
+                    const pct = amt / totalSpent;
+                    const [startX, startY] = [Math.cos(2 * Math.PI * cumulativePercent), Math.sin(2 * Math.PI * cumulativePercent)];
+                    cumulativePercent += pct;
+                    const [endX, endY] = [Math.cos(2 * Math.PI * cumulativePercent), Math.sin(2 * Math.PI * cumulativePercent)];
+                    const largeArcFlag = pct > 0.5 ? 1 : 0;
+                    const color = BUDGET_CATEGORIES.find(b => b.cat === cat)?.color || '#38bdf8';
+                    const isSelected = !selectedPieCategory || selectedPieCategory === cat;
+                    const opacity = isSelected ? '1' : '0.3';
+
+                    if (pct >= 0.999) {
+                        return `<circle cx="0" cy="0" r="1" fill="${color}" opacity="${opacity}" class="cursor-pointer" onclick="togglePieCategory('${cat}')" />`;
+                    }
+                    const pathData = `M 0 0 L ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} Z`;
+                    return `<path d="${pathData}" fill="${color}" opacity="${opacity}" stroke="#131b2e" stroke-width="0.02" class="cursor-pointer transition-opacity" onclick="togglePieCategory('${cat}')"></path>`;
+                }).join('');
+
+                const centerAmt = !selectedPieCategory ? totalSpent : (catTotals[selectedPieCategory] || 0);
+                document.getElementById('pieCenterLabel').textContent = !selectedPieCategory ? 'Total Outflow' : selectedPieCategory;
+                document.getElementById('pieCenterValue').textContent = `฿${centerAmt.toLocaleString()}`;
+
+                legend.innerHTML = entries.map(([cat, amt]) => {
+                    const pct = ((amt / totalSpent) * 100).toFixed(1);
+                    const color = BUDGET_CATEGORIES.find(b => b.cat === cat)?.color || '#38bdf8';
+                    const activeCls = selectedPieCategory === cat ? 'border-sky-500/60 bg-slate-800/80' : 'border-slate-800/80 bg-ios-bg/80';
                     return `
-                        <div class="bg-ios-bg border border-slate-800 rounded-2xl p-3.5 space-y-2">
-                            <div class="flex justify-between items-start gap-2">
-                                <div>
-                                    <h4 class="text-sm font-semibold text-white">${i.name}</h4>
-                                    <p class="text-xs text-slate-400">เดือนละ <span class="text-sky-400 font-semibold">฿${i.monthly.toLocaleString()}</span> • เหลือ ${remainingMonths} งวด (฿${remainingAmt.toLocaleString()})</p>
+                        <div onclick="togglePieCategory('${cat}')" class="border ${activeCls} rounded-2xl p-3 cursor-pointer hover:border-slate-700 transition">
+                            <div class="flex justify-between items-center text-xs mb-1.5">
+                                <div class="flex items-center gap-2 truncate">
+                                    <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${color}"></span>
+                                    <span class="font-semibold text-white truncate">${cat}</span>
                                 </div>
-                                <div class="flex items-center gap-1.5 flex-wrap justify-end">
-                                    <button onclick="moveInstToSpay('${i.id}')" class="bg-orange-500/20 text-orange-300 border border-orange-500/30 text-[11px] px-2 py-1 rounded-lg">ย้ายเข้า SPayLater</button>
-                                    ${remainingMonths > 0 ? `<button onclick="payInstallmentMonth('${i.id}')" class="bg-emerald-600 text-white text-[11px] px-2.5 py-1 rounded-lg font-medium">✓ จ่ายงวดนี้</button>` : `<span class="text-xs text-emerald-400 font-semibold">🎉 ครบแล้ว</span>`}
-                                    <button onclick="openEditItemModal('inst', '${i.id}')" class="bg-slate-800 text-slate-200 text-[11px] px-2 py-1 rounded-lg">✏️</button>
-                                    <button onclick="deleteInstallment('${i.id}')" class="bg-slate-800 text-rose-400 text-[11px] px-2 py-1 rounded-lg">🗑️</button>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <span class="font-bold text-white">฿${amt.toLocaleString()}</span>
+                                    <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-sky-400">${pct}%</span>
                                 </div>
                             </div>
-                            <div class="w-full bg-ios-card rounded-full h-1.5 overflow-hidden">
-                                <div class="bg-sky-500 h-1.5 rounded-full" style="width:${pct}%"></div>
+                            <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                                <div class="h-full rounded-full transition-all" style="width:${pct}%; background-color:${color}"></div>
                             </div>
                         </div>
                     `;
                 }).join('');
             }
 
-            // 3. Subscriptions
-            const subBox = document.getElementById('subscriptionList');
-            if (state.subscriptions.length === 0) {
-                subBox.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">ยังไม่มีรายการ Subscription</p>`;
-            } else {
-                subBox.innerHTML = state.subscriptions.map(s => `
-                    <div class="bg-ios-bg border border-slate-800 rounded-2xl p-3.5 flex justify-between items-center gap-2">
-                        <div>
-                            <h4 class="text-sm font-semibold text-white">${s.name}</h4>
-                            <p class="text-xs text-slate-400">ตัดรอบทุกวันที่ ${s.billingDay} • <span class="text-purple-400 font-semibold">฿${s.price.toLocaleString()}/เดือน</span></p>
+            const detailBox = document.getElementById('summaryCategoryItemsBox');
+            if (selectedPieCategory) {
+                detailBox.classList.remove('hidden');
+                const catItems = monthTx.filter(t => t.category === selectedPieCategory);
+                document.getElementById('summaryCategoryTitle').textContent = `${selectedPieCategory} (${catItems.length} items)`;
+                document.getElementById('summaryCategoryItemsList').innerHTML = catItems.length
+                    ? catItems.map(t => `
+                        <div class="flex justify-between py-1.5 px-2.5 rounded-xl bg-ios-bg/60 border border-slate-800/60">
+                            <span class="text-slate-200 truncate">${t.title} <span class="text-[10px] text-slate-500 ml-1">${t.date.slice(8,10)}/${t.date.slice(5,7)}</span></span>
+                            <span class="font-semibold text-rose-400">฿${t.amount.toLocaleString()}</span>
                         </div>
-                        <div class="flex items-center gap-1.5 shrink-0">
-                            <button onclick="paySubscriptionNow('${s.id}')" class="bg-purple-600/30 text-purple-200 border border-purple-500/40 text-xs px-2.5 py-1.5 rounded-xl">+ จ่ายเดือนนี้</button>
-                            <button onclick="openEditItemModal('sub', '${s.id}')" class="bg-slate-800 text-slate-200 text-xs px-2 py-1.5 rounded-xl">✏️</button>
-                            <button onclick="deleteSubscription('${s.id}')" class="bg-slate-800 text-rose-400 text-xs px-2 py-1.5 rounded-xl">🗑️</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        }
-
-        function renderDebts() {
-            const lends = state.transactions.filter(t => t.type === 'lend' && !t.settled);
-            const borrows = state.transactions.filter(t => t.type === 'borrow' && !t.settled);
-            const totalPending = lends.length + borrows.length;
-
-            const badge = document.getElementById('debtBadge');
-            if (totalPending > 0) {
-                badge.textContent = totalPending;
-                badge.classList.remove('hidden');
+                    `).join('')
+                    : `<p class="text-slate-500 text-xs">No items</p>`;
             } else {
-                badge.classList.add('hidden');
+                detailBox.classList.add('hidden');
             }
 
-            const nowISO = new Date().toISOString().slice(0, 16);
+            const [y, m] = ym.split('-').map(Number);
+            const prevDate = new Date(y, m - 2, 1);
+            const prevYM = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+            const prevTx = state.transactions.filter(t => t.date.startsWith(prevYM) && t.type === 'expense');
+            const currExpTx = state.transactions.filter(t => t.date.startsWith(ym) && t.type === 'expense');
 
-            const renderCard = (t, isLend) => {
-                const isOverdue = t.dueDate && t.dueDate < nowISO;
-                return `
-                    <div class="bg-ios-bg border ${isOverdue ? 'border-rose-500/80' : 'border-slate-800'} rounded-2xl p-3.5 flex justify-between items-center gap-3">
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="text-sm font-bold text-white">👤 ${t.person || 'ไม่ระบุชื่อ'}</span>
-                                <span class="text-xs text-slate-300">(${t.title})</span>
-                                ${isOverdue ? `<span class="bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded-full font-semibold">⚠️ เลยกำหนด</span>` : ''}
-                            </div>
-                            <p class="text-[11px] text-slate-400 mt-1">วันที่บันทึก: ${t.date.replace('T', ' ')}</p>
-                            <p class="text-[11px] ${isOverdue ? 'text-rose-400 font-semibold' : 'text-amber-400'} mt-0.5">⏰ นัดคืน: ${t.dueDate ? t.dueDate.replace('T', ' น.') : '-'}</p>
-                        </div>
-                        <div class="text-right shrink-0 space-y-1.5">
-                            <p class="text-base font-bold ${isLend ? 'text-sky-400' : 'text-rose-400'}">฿${t.amount.toLocaleString()}</p>
-                            <div class="flex items-center justify-end gap-1.5">
-                                <button onclick="openEditTxModal('${t.id}')" class="bg-slate-800 text-slate-200 text-xs px-2.5 py-1 rounded-xl">✏️</button>
-                                <button onclick="settleDebt('${t.id}')" class="bg-emerald-600 text-white text-xs px-2.5 py-1 rounded-xl font-medium">
-                                    ${isLend ? '✓ รับคืนแล้ว' : '✓ โอนคืนแล้ว'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            };
+            const currExp = currExpTx.reduce((s, t) => s + t.amount, 0);
+            const prevExp = prevTx.reduce((s, t) => s + t.amount, 0);
 
-            document.getElementById('lendList').innerHTML = lends.length ? lends.map(t => renderCard(t, true)).join('') : `<p class="text-xs text-slate-500 text-center py-6">ไม่มีรายการค้างทวงเงิน</p>`;
-            document.getElementById('borrowList').innerHTML = borrows.length ? borrows.map(t => renderCard(t, false)).join('') : `<p class="text-xs text-slate-500 text-center py-6">ไม่มีหนี้ค้างชำระ</p>`;
+            document.getElementById('cmpThisMonth').textContent = `฿${currExp.toLocaleString()}`;
+            document.getElementById('cmpLastMonth').textContent = `฿${prevExp.toLocaleString()}`;
+
+            const diffBadge = document.getElementById('compareBadge');
+            if (prevExp === 0) {
+                diffBadge.textContent = currExp > 0 ? '+100%' : '0%';
+                diffBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300';
+            } else {
+                const diffPct = Math.round(((currExp - prevExp) / prevExp) * 100);
+                diffBadge.textContent = `${diffPct > 0 ? '+' : ''}${diffPct}%`;
+                diffBadge.className = `text-xs font-semibold px-2.5 py-0.5 rounded-full ${diffPct > 0 ? 'bg-rose-500/20 text-rose-300' : 'bg-emerald-500/20 text-emerald-300'}`;
+            }
+
+            drawMonthlySlipCanvas(ym, catTotals);
+            renderSlips(ym);
         }
 
-        function renderSlips() {
-            const withSlips = state.transactions.filter(t => t.slip);
+        function togglePieCategory(cat) {
+            selectedPieCategory = selectedPieCategory === cat ? null : cat;
+            renderSummaryTab();
+        }
+
+        function clearSelectedPieCategory() {
+            selectedPieCategory = null;
+            renderSummaryTab();
+        }
+
+        // --- Monthly Slip Generator ---
+        function drawMonthlySlipCanvas(ym, catTotals) {
+            const canvas = document.getElementById('monthlySlipCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            const monthTx = state.transactions.filter(t => t.date.startsWith(ym));
+            const inc = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+            const exp = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+            const sav = monthTx.filter(t => t.type === 'saving').reduce((s, t) => s + t.amount, 0);
+            const net = inc - exp - sav;
+
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#131b2e';
+            ctx.fillRect(16, 16, canvas.width - 32, canvas.height - 32);
+            ctx.strokeStyle = '#23304d';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
+
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(16, 16, canvas.width - 32, 86);
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 24px Prompt, sans-serif';
+            ctx.fillText('FINTRACK MONTHLY SLIP', 40, 58);
+            ctx.font = '500 15px Prompt, sans-serif';
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillText(`Period: ${ym}`, 40, 84);
+
+            const rows = [
+                { label: 'Income', val: `฿${inc.toLocaleString()}`, color: '#34d399' },
+                { label: 'Expense', val: `฿${exp.toLocaleString()}`, color: '#fb7185' },
+                { label: 'Savings', val: `฿${sav.toLocaleString()}`, color: '#fbbf24' },
+                { label: 'Net Balance', val: `฿${net.toLocaleString()}`, color: '#38bdf8' }
+            ];
+
+            let yPos = 145;
+            rows.forEach(r => {
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '500 17px Prompt, sans-serif';
+                ctx.fillText(r.label, 40, yPos);
+
+                ctx.fillStyle = r.color;
+                ctx.font = 'bold 19px Prompt, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(r.val, canvas.width - 40, yPos);
+                ctx.textAlign = 'left';
+
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(40, yPos + 14);
+                ctx.lineTo(canvas.width - 40, yPos + 14);
+                ctx.stroke();
+
+                yPos += 46;
+            });
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 16px Prompt, sans-serif';
+            ctx.fillText('CATEGORY BREAKDOWN', 40, yPos + 10);
+            yPos += 40;
+
+            const topCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]).slice(0, 7);
+            if (topCats.length === 0) {
+                ctx.fillStyle = '#64748b';
+                ctx.font = '15px Prompt, sans-serif';
+                ctx.fillText('No expenses recorded', 40, yPos);
+            } else {
+                topCats.forEach(([cat, amt]) => {
+                    ctx.fillStyle = '#cbd5e1';
+                    ctx.font = '15px Prompt, sans-serif';
+                    ctx.fillText(cat, 40, yPos);
+
+                    ctx.fillStyle = '#38bdf8';
+                    ctx.font = 'bold 15px Prompt, sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(`฿${amt.toLocaleString()}`, canvas.width - 40, yPos);
+                    ctx.textAlign = 'left';
+                    yPos += 34;
+                });
+            }
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '12px Prompt, sans-serif';
+            ctx.fillText(`Generated on ${new Date().toISOString().slice(0, 10)}`, 40, canvas.height - 34);
+        }
+
+        function downloadMonthlySlipPNG() {
+            const ym = document.getElementById('monthFilter').value;
+            const canvas = document.getElementById('monthlySlipCanvas');
+            const link = document.createElement('a');
+            link.download = `fintrack_slip_${ym}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadCSV(scope) {
+            const ym = document.getElementById('monthFilter').value;
+            const rows = scope === 'month'
+                ? state.transactions.filter(t => t.date.startsWith(ym))
+                : state.transactions;
+
+            const headers = ['Date', 'Type', 'Category', 'Title', 'Amount', 'Person', 'Settled'];
+            const csvLines = [
+                headers.join(','),
+                ...rows.map(t => [
+                    `"${t.date}"`,
+                    `"${t.type}"`,
+                    `"${t.category}"`,
+                    `"${(t.title || '').replace(/"/g, '""')}"`,
+                    t.amount,
+                    `"${t.person || ''}"`,
+                    t.settled ? 'Yes' : 'No'
+                ].join(','))
+            ];
+
+            const blob = new Blob(['\uFEFF' + csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fintrack_${scope === 'month' ? ym : 'all'}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function renderSlips(ym) {
+            const withSlips = state.transactions.filter(t => t.slip && t.date.startsWith(ym));
             const gallery = document.getElementById('slipGallery');
             if (withSlips.length === 0) {
-                gallery.innerHTML = `<p class="col-span-full text-center py-10 text-slate-500 text-xs">ยังไม่มีรูปสลิปที่อัปโหลดไว้</p>`;
+                gallery.innerHTML = `<p class="col-span-full text-center py-4 text-slate-500 text-xs">No receipts attached</p>`;
                 return;
             }
             gallery.innerHTML = withSlips.map(t => `
-                <div onclick="openSlipModal('${t.id}')" class="bg-ios-bg border border-slate-800 rounded-2xl overflow-hidden cursor-pointer group">
-                    <div class="h-36 overflow-hidden bg-black">
-                        <img src="${t.slip}" class="w-full h-full object-cover group-hover:scale-105 transition">
-                    </div>
-                    <div class="p-2.5">
-                        <p class="text-xs font-semibold text-white truncate">${t.title}</p>
-                        <div class="flex justify-between items-center mt-1 text-[11px] text-slate-400">
-                            <span>${t.date.slice(0, 10)}</span>
-                            <span class="text-sky-400 font-bold">฿${t.amount.toLocaleString()}</span>
-                        </div>
+                <div onclick="openSlipModal('${t.id}')" class="bg-ios-bg border border-slate-800 rounded-2xl overflow-hidden cursor-pointer">
+                    <img src="${t.slip}" class="w-full h-24 object-cover">
+                    <div class="p-2 text-[10px]">
+                        <p class="font-semibold text-white truncate">${t.title}</p>
+                        <p class="text-sky-400 font-bold mt-0.5">฿${t.amount.toLocaleString()}</p>
                     </div>
                 </div>
             `).join('');
         }
 
-        // --- Slip Lightbox Modal ---
+        // --- Page 3: Allocate Render ---
+        function renderAllocateTab(ym, income, catTotals, totalUsed, spayMonthly, activeInstSum, subSum, lentUnsettled, borrowUnsettled) {
+            const bgtMap = state.budgets[ym] || {};
+            const totalAllocated = BUDGET_CATEGORIES.reduce((s, item) => s + (parseFloat(bgtMap[item.cat]) || 0), 0);
+            const unallocated = income - totalAllocated;
+
+            const fmt = (n) => `฿${n.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}`;
+            document.getElementById('bgtTotalIncome').textContent = fmt(income);
+            document.getElementById('bgtTotalAllocated').textContent = fmt(totalAllocated);
+            document.getElementById('bgtTotalUsed').textContent = fmt(totalUsed);
+            document.getElementById('bgtUnallocated').textContent = fmt(unallocated);
+
+            document.getElementById('allocFixedTotal').textContent = fmt(spayMonthly + activeInstSum + subSum);
+            document.getElementById('allocSpaySum').textContent = fmt(spayMonthly);
+            document.getElementById('allocInstSum').textContent = fmt(activeInstSum);
+            document.getElementById('allocSubSum').textContent = fmt(subSum);
+
+            document.getElementById('allocLentTotal').textContent = fmt(lentUnsettled);
+            document.getElementById('allocBorrowTotal').textContent = fmt(borrowUnsettled);
+
+            const grid = document.getElementById('budgetPocketsGrid');
+            grid.innerHTML = BUDGET_CATEGORIES.map(item => {
+                const allocated = parseFloat(bgtMap[item.cat]) || 0;
+                const spent = catTotals[item.cat] || 0;
+                const remaining = allocated - spent;
+                const pct = allocated > 0 ? Math.min(100, Math.round((spent / allocated) * 100)) : (spent > 0 ? 100 : 0);
+                const isOver = remaining < 0;
+
+                return `
+                    <div class="bg-ios-bg border ${isOver ? 'border-rose-500/60' : 'border-slate-800'} rounded-2xl p-3.5 space-y-2">
+                        <div class="flex justify-between items-center gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${item.color}"></span>
+                                <h4 class="text-xs font-bold text-white">${item.cat}</h4>
+                            </div>
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-xs font-semibold ${isOver ? 'text-rose-400' : 'text-emerald-400'}">Left: ฿${remaining.toLocaleString()}</span>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" step="50" value="${allocated}" onchange="updatePocketBudget('${item.cat}', this.value)" class="w-20 bg-ios-card border border-slate-700 rounded-xl px-2 py-1 text-right text-xs font-bold text-sky-400 focus:border-sky-500 focus:outline-none">
+                                    <span class="text-[10px] text-slate-400">฿</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                                <div class="h-full rounded-full transition-all" style="width:${pct}%; background-color:${isOver ? '#f43f5e' : item.color}"></div>
+                            </div>
+                            <span class="text-[10px] text-slate-400 w-24 text-right">Spent ฿${spent.toLocaleString()}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- Slip Viewer Modal ---
         function openSlipModal(txId) {
             const tx = state.transactions.find(t => t.id === txId);
             if (!tx || !tx.slip) return;
@@ -1869,7 +1752,7 @@
             document.getElementById('modalImg').src = tx.slip;
             document.getElementById('modalMeta').textContent = `${tx.category} • ${tx.date.replace('T', ' ')}`;
             document.getElementById('modalDownload').href = tx.slip;
-            document.getElementById('modalDownload').download = `slip_${tx.date.slice(0,10)}_${tx.title}.jpg`;
+            document.getElementById('modalDownload').download = `slip_${tx.date.slice(0,10)}.jpg`;
             const modal = document.getElementById('slipModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -1883,7 +1766,7 @@
 
         // --- Bottom Tab Switching ---
         function switchTab(tab) {
-            ['dashboard', 'budgets', 'installments', 'debts', 'slips'].forEach(t => {
+            ['home', 'summary', 'allocate'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
                 document.getElementById(`tab-${t}`).classList.remove('nav-active');
             });
@@ -1892,8 +1775,8 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- Export / Import JSON ---
-        function exportData() {
+        // --- Backup / Restore JSON ---
+        function exportBackupJSON() {
             const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1903,7 +1786,7 @@
             URL.revokeObjectURL(url);
         }
 
-        function importData(event) {
+        function importBackupJSON(event) {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
@@ -1914,10 +1797,9 @@
                         state = parsed;
                         migrateAndEnsureStructure();
                         renderAll();
-                        alert('นำเข้าข้อมูลสำเร็จ! ระบบได้จัดระเบียบรายการผ่อนและงบประมาณให้เรียบร้อยแล้ว');
                     }
                 } catch (err) {
-                    alert('ไฟล์ไม่ถูกต้อง');
+                    alert('Invalid backup file');
                 }
             };
             reader.readAsText(file);
